@@ -667,7 +667,23 @@
                 .getDashboardData();
         }
 
-        // 4. ตั้งค่า Quick Filter จาก Stat Cards
+        // 4. จัดกลุ่มสถานะงานให้ตรงกับ Backend และ Stat Cards
+        function classifyStatus(status) {
+            const s = (status || "").toString().trim();
+            const sLower = s.toLowerCase();
+            if (s === "Pending" || s === "รอดำเนินการ" || s.includes("รอรับแจ้ง") || sLower === "pending") {
+                return "pending";
+            }
+            if (s.includes("สมบูรณ์") || s.includes("เสร็จ") || sLower.includes("complete") || sLower.includes("done")) {
+                return "completed";
+            }
+            if (s.includes("ตีกลับ") || s.includes("ยกเลิก") || s.includes("ปฏิเสธ") || sLower.includes("reject") || sLower.includes("cancel")) {
+                return "rejected";
+            }
+            return "processing";
+        }
+
+        // ตั้งค่า Quick Filter จาก Stat Cards
         function setQuickFilter(type) {
             activeQuickFilter = type;
             const selectEl = document.getElementById('statusFilter');
@@ -711,11 +727,27 @@
                 }
 
                 allTickets = data.allTickets;
-                document.getElementById('total-jobs').innerText = data.total || 0;
-                document.getElementById('pending-jobs').innerText = data.pending || 0;
-                document.getElementById('processing-jobs').innerText = data.processing || 0;
-                document.getElementById('completed-jobs').innerText = data.completed || 0;
             }
+
+            // คำนวณตัวเลขสถิติจากชุดข้อมูลที่โหลดมาเพื่อให้ตัวเลขบนการ์ดและรายการในตารางตรงกัน 100%
+            let countTotal = allTickets.length;
+            let countPending = 0;
+            let countProcessing = 0;
+            let countCompleted = 0;
+            let countRejected = 0;
+
+            allTickets.forEach(t => {
+                const cat = t.statusCategory || classifyStatus(t.status);
+                if (cat === 'pending') countPending++;
+                else if (cat === 'processing') countProcessing++;
+                else if (cat === 'completed') countCompleted++;
+                else if (cat === 'rejected') countRejected++;
+            });
+
+            if (document.getElementById('total-jobs')) document.getElementById('total-jobs').innerText = countTotal;
+            if (document.getElementById('pending-jobs')) document.getElementById('pending-jobs').innerText = countPending;
+            if (document.getElementById('processing-jobs')) document.getElementById('processing-jobs').innerText = countProcessing;
+            if (document.getElementById('completed-jobs')) document.getElementById('completed-jobs').innerText = countCompleted;
 
             const filterValue = document.getElementById('statusFilter') ? document.getElementById('statusFilter').value : 'all';
             const searchQuery = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').toLowerCase().trim();
@@ -725,22 +757,8 @@
             // ตัวกรองตามสถานะ
             if (filterValue !== 'all') {
                 ticketsToShow = ticketsToShow.filter(t => {
-                    const s = (t.status || '').toLowerCase();
-                    if (filterValue === 'pending') {
-                        return s.includes('pending') || s.includes('รอดำเนินการ') || s.includes('รอรับแจ้ง');
-                    }
-                    if (filterValue === 'completed') {
-                        return s.includes('สมบูรณ์') || s.includes('เสร็จ') || s.includes('completed');
-                    }
-                    if (filterValue === 'processing') {
-                        return !s.includes('สมบูรณ์') && !s.includes('เสร็จ') && !s.includes('completed') &&
-                               !s.includes('pending') && !s.includes('รอดำเนินการ') &&
-                               !s.includes('ตีกลับ') && !s.includes('ยกเลิก') && !s.includes('ปฏิเสธ');
-                    }
-                    if (filterValue === 'rejected') {
-                        return s.includes('ตีกลับ') || s.includes('ยกเลิก') || s.includes('ปฏิเสธ') || s.includes('rejected');
-                    }
-                    return true;
+                    const cat = t.statusCategory || classifyStatus(t.status);
+                    return cat === filterValue;
                 });
             }
 

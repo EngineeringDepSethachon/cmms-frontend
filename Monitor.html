@@ -402,6 +402,21 @@
             });
         }
 
+        function classifyStatus(status) {
+            const s = (status || "").toString().trim();
+            const sLower = s.toLowerCase();
+            if (s === "Pending" || s === "รอดำเนินการ" || s.includes("รอรับแจ้ง") || sLower === "pending") {
+                return "pending";
+            }
+            if (s.includes("สมบูรณ์") || s.includes("เสร็จ") || sLower.includes("complete") || sLower.includes("done")) {
+                return "completed";
+            }
+            if (s.includes("ตีกลับ") || s.includes("ยกเลิก") || s.includes("ปฏิเสธ") || sLower.includes("reject") || sLower.includes("cancel")) {
+                return "rejected";
+            }
+            return "processing";
+        }
+
         // ฟังก์ชันทำงานเมื่อกดเปลี่ยนแผนกใน Dropdown
         function applyFilter() {
             const selectedDept = document.getElementById('deptFilter').value;
@@ -416,11 +431,11 @@
             let pending = 0, processing = 0, completed = 0, rejected = 0;
             
             filteredTickets.forEach(t => {
-                const s = t.status || "";
-                if (s === "Pending" || s === "รอดำเนินการ") pending++;
-                else if (s.includes("สมบูรณ์") || s.includes("เสร็จสิ้น")) completed++;
-                else if (s.includes("ตีกลับ") || s.includes("ยกเลิก") || s.includes("ปฏิเสธ")) rejected++;
-                else processing++; // ให้สถานะอื่นๆ นอกเหนือจากนี้อยู่ในหมวด "กำลังดำเนินการ"
+                const cat = t.statusCategory || classifyStatus(t.status);
+                if (cat === "pending") pending++;
+                else if (cat === "completed") completed++;
+                else if (cat === "rejected") rejected++;
+                else if (cat === "processing") processing++;
             });
             
             document.getElementById('stat-total').innerText = filteredTickets.length;

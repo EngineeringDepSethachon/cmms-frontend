@@ -353,6 +353,24 @@ function uploadSignature(uid, base64Data, filename) {
   }
 }
 
+// ฟังก์ชันจัดกลุ่มสถานะงานให้เป็นมาตรฐานเดียวกันทั้งระบบ
+function classifyStatus(status) {
+  var s = (status || "").toString().trim();
+  var sLower = s.toLowerCase();
+  
+  if (s === "Pending" || s === "รอดำเนินการ" || s.indexOf("รอรับแจ้ง") !== -1 || sLower === "pending") {
+    return "pending";
+  }
+  if (s.indexOf("สมบูรณ์") !== -1 || s.indexOf("เสร็จ") !== -1 || sLower.indexOf("complete") !== -1 || sLower.indexOf("done") !== -1) {
+    return "completed";
+  }
+  if (s.indexOf("ตีกลับ") !== -1 || s.indexOf("ยกเลิก") !== -1 || s.indexOf("ปฏิเสธ") !== -1 || sLower.indexOf("reject") !== -1 || sLower.indexOf("cancel") !== -1) {
+    return "rejected";
+  }
+  // ทุกสถานะที่อยู่ระหว่างขั้นตอน SOP (รออนุมัติการซ่อม, อยู่ระหว่างดำเนินการ, รอรับมอบงาน, รอการทวนสอบ QC)
+  return "processing";
+}
+
 function getDashboardData() {
   try {
     var ss = SpreadsheetApp.openById(SHEET_ID);
@@ -360,20 +378,22 @@ function getDashboardData() {
     var data = sheet.getDataRange().getValues();
     var summary = { total: 0, pending: 0, processing: 0, completed: 0, rejected: 0, allTickets: [] };
     
-    // จำกัดการประมวลผลเฉพาะ 200 รายการล่าสุดเพื่อความเร็ว
-    var startRow = Math.max(1, data.length - 200);
+    // โหลดข้อมูลสูงสุด 500 รายการล่าสุด
+    var startRow = Math.max(1, data.length - 500);
     
     for (var i = data.length - 1; i >= 1; i--) { 
-      if (!data[i][1]) continue; 
+      if (!data[i][0] && !data[i][1]) continue; 
       
-      var status = data[i][2] ? data[i][2].toString() : "";
+      var status = data[i][2] ? data[i][2].toString().trim() : "";
+      var category = classifyStatus(status);
+      
       summary.total++;
-      if (status === "Pending" || status === "รอดำเนินการ") summary.pending++;
-      else if (status.includes("ระหว่าง") || status.includes("อนุมัติ")) summary.processing++;
-      else if (status.includes("ตีกลับ") || status.includes("ยกเลิก") || status.includes("ปฏิเสธ")) summary.rejected++;
-      else summary.completed++;
+      if (category === "pending") summary.pending++;
+      else if (category === "processing") summary.processing++;
+      else if (category === "completed") summary.completed++;
+      else if (category === "rejected") summary.rejected++;
 
-      // ประมวลผลรายละเอียดเฉพาะ 200 รายการล่าสุด
+      // ประมวลผลรายละเอียดเฉพาะรายการที่กำหนด
       if (i >= startRow) {
         var rawImageUrl = data[i][6] ? data[i][6].toString() : ""; 
         var imageUrl = rawImgToThumbnail(rawImageUrl);
@@ -381,8 +401,11 @@ function getDashboardData() {
         var completionImageUrl = rawImgToThumbnail(rawCompUrl);
 
         summary.allTickets.push({
-          ticket: data[i][1] ? data[i][1].toString() : "", 
-          status: status ? status.toString() : "", 
+          engTicketId: data[i][0] ? data[i][0].toString() : "", 
+          ticket: data[i][1] ? data[i][1].toString() : (data[i][0] ? data[i][0].toString() : ""), 
+          deptTicketId: data[i][1] ? data[i][1].toString() : "", 
+          status: status, 
+          statusCategory: category,
           target: data[i][3] && data[i][3].toString() !== "-" ? data[i][3].toString() : (data[i][4] ? data[i][4].toString() : "-"),
           problem: data[i][5] ? data[i][5].toString() : "", 
           date: formatDate(data[i][8]), 
@@ -398,6 +421,7 @@ function getDashboardData() {
           repairMethod: data[i][17] ? data[i][17].toString() : "", 
           repairDetails: data[i][18] ? data[i][18].toString() : "", 
           approvalStatus: data[i][19] ? data[i][19].toString() : "",
+          refTicketId: data[i][20] ? data[i][20].toString() : "",
           cause: data[i][22] ? data[i][22].toString() : "", 
           receiver: data[i][23] ? data[i][23].toString() : "", 
           verifier: data[i][24] ? data[i][24].toString() : "",
