@@ -3,40 +3,67 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>จัดการสิทธิ์การเข้าถึงโมดูล (Role Permissions)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CMMS - จัดการสิทธิ์การเข้าถึงโมดูล (Role Permissions)</title>
+    <!-- Dependencies -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="config.js"></script>
     <script src="api.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@700;800&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --neo-dark: #191A23;
-            --neo-light: #F3F3F3;
+            --neo-light: #F8F9FA;
             --neo-green: #B9FF66;
-            --neo-blue: #00D1FF;
+            --neo-blue: #4D96FF;
             --neo-yellow: #FFD166;
+            --neo-red: #FF6B6B;
+            --neo-purple: #9D4EDD;
             --neo-white: #FFFFFF;
             --border-width: 2px;
             --shadow-depth: 4px;
         }
 
+        * { box-sizing: border-box; }
+
         body { 
-            background-color: var(--neo-white); 
+            background-color: #F4F6F8; 
             font-family: 'Sarabun', sans-serif; 
             min-height: 100vh; 
             display: flex; 
             flex-direction: column; 
             color: var(--neo-dark);
+            margin: 0;
+            padding-bottom: 80px; /* Space for sticky mobile bar */
+        }
+
+        h1, h2, h3, h4, h5, h6, .brand-font {
+            font-family: 'Prompt', sans-serif;
+            font-weight: 700;
+        }
+
+        /* Top Sticky Header */
+        .system-header {
+            background-color: var(--neo-green);
+            border-bottom: var(--border-width) solid var(--neo-dark);
+            box-shadow: 0 var(--shadow-depth) 0 var(--neo-dark);
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            padding: 12px 0;
         }
 
         .card-neo {
             background-color: var(--neo-white);
             border: var(--border-width) solid var(--neo-dark);
-            border-radius: 16px;
+            border-radius: 14px;
             box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
 
         .btn-neo {
@@ -44,170 +71,414 @@
             color: var(--neo-dark);
             border: var(--border-width) solid var(--neo-dark);
             border-radius: 10px;
+            font-family: 'Prompt', sans-serif;
             font-weight: 700;
-            padding: 8px 18px;
+            font-size: 0.9rem;
+            padding: 8px 16px;
             box-shadow: 3px 3px 0px var(--neo-dark);
             transition: all 0.15s ease;
-        }
-
-        .btn-neo:hover {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0px var(--neo-dark);
-            background-color: var(--neo-green);
-        }
-
-        .btn-neo-green {
-            background-color: var(--neo-green);
-            color: var(--neo-dark);
-        }
-
-        .btn-neo-green:hover {
-            background-color: #a3f542;
-        }
-
-        /* Toggle Switches */
-        .form-check-input:checked {
-            background-color: var(--neo-green);
-            border-color: var(--neo-dark);
-        }
-
-        .form-check-input {
-            width: 2.6em;
-            height: 1.4em;
-            border: var(--border-width) solid var(--neo-dark);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
             cursor: pointer;
         }
 
-        .table-responsive {
-            border: var(--border-width) solid var(--neo-dark);
-            border-radius: 12px;
-            box-shadow: 3px 3px 0px var(--neo-dark);
-            overflow: hidden;
+        .btn-neo:hover:not(:disabled) {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px var(--neo-dark);
+            color: var(--neo-dark);
         }
 
-        .table th {
+        .btn-neo:active:not(:disabled) {
+            transform: translate(3px, 3px);
+            box-shadow: 0px 0px 0px var(--neo-dark);
+        }
+
+        .btn-neo:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: 1px 1px 0px var(--neo-dark);
+        }
+
+        .btn-neo-green { background-color: var(--neo-green); }
+        .btn-neo-green:hover:not(:disabled) { background-color: #a3f542; }
+
+        .btn-neo-yellow { background-color: var(--neo-yellow); }
+        .btn-neo-yellow:hover:not(:disabled) { background-color: #f7c244; }
+
+        .btn-neo-dark { background-color: var(--neo-dark); color: var(--neo-white) !important; }
+        .btn-neo-dark:hover:not(:disabled) { background-color: #33343d; color: var(--neo-white); }
+
+        /* Level Badge Styles */
+        .badge-level {
+            font-family: 'Prompt', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border: 1.5px solid var(--neo-dark);
+            border-radius: 8px;
+            padding: 4px 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Toggle Switches */
+        .form-check-input {
+            width: 2.8em !important;
+            height: 1.5em !important;
+            border: 2px solid var(--neo-dark) !important;
+            border-radius: 2em !important;
+            cursor: pointer;
+            background-color: #e9ecef;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+            transition: all 0.2s ease;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--neo-green) !important;
+            border-color: var(--neo-dark) !important;
+        }
+
+        .form-check-input:focus {
+            box-shadow: 0 0 0 0.2rem rgba(185, 255, 102, 0.4) !important;
+            outline: none;
+        }
+
+        /* View Mode Switcher */
+        .view-pill-group {
+            background: #E9ECEF;
+            border: 2px solid var(--neo-dark);
+            border-radius: 10px;
+            padding: 3px;
+            display: inline-flex;
+            box-shadow: 2px 2px 0 var(--neo-dark);
+        }
+
+        .view-pill {
+            border: none;
+            background: transparent;
+            font-family: 'Prompt', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 6px 14px;
+            border-radius: 7px;
+            color: var(--neo-dark);
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+
+        .view-pill.active {
+            background-color: var(--neo-dark);
+            color: var(--neo-white);
+            box-shadow: 1px 1px 0px rgba(0,0,0,0.2);
+        }
+
+        /* ================= Desktop Table Matrix ================= */
+        .matrix-table-container {
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 14px;
+            box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark);
+            overflow: auto;
+            max-height: 75vh;
+            background-color: var(--neo-white);
+        }
+
+        .matrix-table {
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+
+        .matrix-table th {
             background-color: var(--neo-dark) !important;
             color: var(--neo-white) !important;
             font-family: 'Prompt', sans-serif;
-            vertical-align: middle;
-            text-align: center;
-        }
-
-        .table td {
-            vertical-align: middle;
-            text-align: center;
-        }
-
-        .badge-level {
             font-weight: 700;
+            font-size: 0.85rem;
+            vertical-align: middle;
+            text-align: center;
+            padding: 12px 10px;
+            border-bottom: 2px solid var(--neo-dark);
+            border-right: 1px solid #33343d;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .matrix-table th:first-child {
+            position: sticky;
+            left: 0;
+            top: 0;
+            z-index: 20;
+            background-color: #000000 !important;
+            min-width: 220px;
+            text-align: left;
+            padding-left: 16px;
+        }
+
+        .matrix-table td {
+            vertical-align: middle;
+            text-align: center;
+            padding: 12px 8px;
+            border-bottom: 1px solid #e0e0e0;
+            border-right: 1px solid #f0f0f0;
+            background-color: var(--neo-white);
+        }
+
+        .matrix-table tr:hover td {
+            background-color: #F8FFF0 !important;
+        }
+
+        .matrix-table td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            text-align: left;
+            padding-left: 14px;
+            border-right: 2px solid var(--neo-dark);
+        }
+
+        /* ================= Mobile Card View ================= */
+        .level-accordion-card {
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 14px;
+            box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark);
+            background: var(--neo-white);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .level-header {
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 2px solid transparent;
+            transition: background 0.15s ease;
+        }
+
+        .level-header.active {
+            border-bottom-color: var(--neo-dark);
+        }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            padding: 16px;
+            background-color: #FAFAFA;
+        }
+
+        .module-item-card {
+            background: var(--neo-white);
+            border: 2px solid var(--neo-dark);
+            border-radius: 10px;
+            padding: 12px 14px;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s ease;
+        }
+
+        .module-item-card.active {
+            background-color: #F6FFE6;
+            border-color: #191A23;
+        }
+
+        .module-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .module-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
             border: 1.5px solid var(--neo-dark);
-            border-radius: 12px;
-            padding: 4px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background-color: #FFFFFF;
+            box-shadow: 1px 1px 0 var(--neo-dark);
+            flex-shrink: 0;
+        }
+
+        /* Floating / Sticky Mobile Save Bar */
+        .mobile-bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--neo-white);
+            border-top: var(--border-width) solid var(--neo-dark);
+            box-shadow: 0 -4px 0px rgba(0,0,0,0.08);
+            padding: 10px 16px;
+            z-index: 1030;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (min-width: 992px) {
+            .mobile-bottom-bar {
+                display: none !important;
+            }
+            body {
+                padding-bottom: 30px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .desktop-only-action {
+                display: none !important;
+            }
+            .matrix-table-container {
+                max-height: 60vh;
+            }
         }
     </style>
 </head>
 <body>
 
     <!-- Header -->
-    <header class="border-bottom border-3 border-dark mb-4" style="background-color: var(--neo-green); padding: 15px 0; box-shadow: 0 4px 0 var(--neo-dark); position: relative; z-index: 10;">
-        <div class="container-fluid px-md-4 d-flex justify-content-between align-items-center">
-            <div class="fw-bold fs-4 text-dark" style="cursor:pointer;" onclick="window.location.href='Home.html'">
-                <i class="bi bi-shield-lock-fill me-2 fs-2"></i> <span class="d-none d-sm-inline">ตั้งค่าสิทธิ์การเข้าถึงโมดูล (Role Permissions)</span><span class="d-inline d-sm-none">Role Config</span>
+    <header class="system-header">
+        <div class="container-fluid px-3 px-md-4 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2" style="cursor:pointer;" onclick="window.location.href='Home.html'">
+                <div class="bg-dark text-white rounded p-1 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border: 2px solid var(--neo-dark); box-shadow: 2px 2px 0 var(--neo-dark);">
+                    <i class="bi bi-shield-lock-fill fs-5 text-warning"></i>
+                </div>
+                <div>
+                    <div class="brand-font fs-5 lh-1 text-dark">ROLE PERMISSIONS</div>
+                    <div class="small fw-bold text-dark d-none d-sm-block" style="font-size: 0.75rem;">ตั้งค่าสิทธิ์การเข้าถึงโมดูล (Access Matrix)</div>
+                </div>
             </div>
+
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-white text-dark border border-2 border-dark rounded px-3 py-2 fw-bold d-none d-md-inline" style="box-shadow: 2px 2px 0 var(--neo-dark);">
-                    <i class="bi bi-person-fill-gear me-1"></i> Admin Level 5 Only
+                <span class="badge bg-white text-dark border border-2 border-dark rounded-pill px-3 py-2 fw-bold d-none d-md-inline-block" style="box-shadow: 2px 2px 0 var(--neo-dark);">
+                    <i class="bi bi-person-fill-gear text-primary me-1"></i> Admin Level 5 Only
                 </span>
-                <a href="Home.html" class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);"><i class="bi bi-house-door me-1"></i> Home</a>
+                <a href="Home.html" class="btn-neo btn-sm">
+                    <i class="bi bi-house-door me-1"></i> <span class="d-none d-sm-inline">หน้าหลัก</span>
+                </a>
             </div>
         </div>
     </header>
 
-    <div class="container-fluid px-md-4 flex-grow-1 pb-5">
+    <!-- Main Container -->
+    <main class="container-fluid px-3 px-md-4 flex-grow-1 pt-3 pb-4">
         
-        <!-- Action Bar -->
-        <div class="card-neo p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <div>
-                <h4 class="fw-bold mb-1"><i class="bi bi-sliders me-2"></i>กำหนดสิทธิ์การมองเห็นเมนูตาม Level (Access Matrix)</h4>
-                <div class="text-muted small">สิทธิ์ที่เปิดในหน้านี้จะไปควบคุมการแสดงผลของปุ่มกดเมนูต่างๆ ในหน้าแรก (Portal Home) โดยทันที</div>
-            </div>
-            <div class="d-flex gap-2">
-                <button type="button" class="btn-neo" onclick="resetToDefault()"><i class="bi bi-arrow-counterclockwise me-1"></i> คืนค่าเริ่มต้น</button>
-                <button type="button" class="btn-neo btn-neo-green" id="btnSavePermissions" onclick="savePermissions()"><i class="bi bi-save-fill me-1"></i> บันทึกการตั้งค่าสิทธิ์</button>
+        <!-- Control Bar -->
+        <div class="card-neo p-3 mb-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <div>
+                    <h5 class="mb-1 d-flex align-items-center gap-2">
+                        <i class="bi bi-sliders text-dark"></i> กำหนดสิทธิ์การมองเห็นเมนูตาม Level
+                    </h5>
+                    <div class="text-muted small">
+                        สิทธิ์ที่เปิดในหน้านี้จะไปควบคุมการแสดงผลของปุ่มกดเมนูต่างๆ ในหน้าแรก (Portal Home) โดยอัตโนมัติ
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-between w-100 w-md-auto gap-2">
+                    <!-- View Mode Switcher -->
+                    <div class="view-pill-group">
+                        <button type="button" class="view-pill" id="viewCardBtn" onclick="switchView('card')">
+                            <i class="bi bi-grid-fill me-1"></i> รายการการ์ด
+                        </button>
+                        <button type="button" class="view-pill" id="viewTableBtn" onclick="switchView('table')">
+                            <i class="bi bi-table me-1"></i> ตาราง Matrix
+                        </button>
+                    </div>
+
+                    <!-- Action Buttons (Desktop) -->
+                    <div class="desktop-only-action d-flex gap-2">
+                        <button type="button" class="btn-neo btn-neo-yellow" onclick="resetToDefault()">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> คืนค่าเริ่มต้น
+                        </button>
+                        <button type="button" class="btn-neo btn-neo-green" id="btnSavePermissions" onclick="savePermissions()">
+                            <i class="bi bi-save-fill me-1"></i> บันทึกการตั้งค่าสิทธิ์
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Table Container -->
-        <div class="table-responsive bg-white">
-            <table class="table table-hover table-bordered mb-0" id="matrixTable">
-                <thead>
-                    <tr>
-                        <th style="min-width: 180px;" class="text-start ps-3">User Level</th>
-                        <th title="แจ้งซ่อม">📋 แจ้งซ่อม<br><small class="fw-normal">(index)</small></th>
-                        <th title="Monitor">📊 Monitor<br><small class="fw-normal">(monitor)</small></th>
-                        <th title="คลังอะไหล่">📦 คลังอะไหล่<br><small class="fw-normal">(inventory)</small></th>
-                        <th title="แผนงาน PM">📅 แผน PM<br><small class="fw-normal">(pm)</small></th>
-                        <th title="งานซ่อมบำรุง">🔧 ซ่อมบำรุง<br><small class="fw-normal">(maint)</small></th>
-                        <th title="งานห้องเครื่อง">⚡ ห้องเครื่อง<br><small class="fw-normal">(engine)</small></th>
-                        <th title="Dashboard">📈 Dashboard<br><small class="fw-normal">(dashboard)</small></th>
-                        <th title="รับมอบงาน">🤝 รับมอบงาน<br><small class="fw-normal">(handover)</small></th>
-                        <th title="ทวนสอบงาน">🔍 ทวนสอบ<br><small class="fw-normal">(verify)</small></th>
-                        <th title="อนุมัติงาน">✅ อนุมัติงาน<br><small class="fw-normal">(approve)</small></th>
-                        <th title="ลายเซ็น">✍️ ลายเซ็น<br><small class="fw-normal">(signatures)</small></th>
-                        <th title="ตั้งค่าสิทธิ์">🔐 ตั้งค่าสิทธิ์<br><small class="fw-normal">(role_config)</small></th>
-                    </tr>
-                </thead>
-                <tbody id="matrixTbody">
-                    <tr>
-                        <td colspan="13" class="py-5 text-center">
-                            <div class="spinner-border text-dark"></div>
-                            <div class="mt-2 fw-bold">กำลังโหลดข้อมูลสิทธิ์จากระบบ...</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Dynamic Content Container -->
+        <div id="contentArea">
+            <div class="text-center py-5">
+                <div class="spinner-border text-dark mb-2" role="status"></div>
+                <div class="fw-bold text-muted">⏳ กำลังโหลดข้อมูลสิทธิ์จากระบบ...</div>
+            </div>
         </div>
 
+    </main>
+
+    <!-- Floating Sticky Bottom Bar for Mobile -->
+    <div class="mobile-bottom-bar">
+        <button type="button" class="btn-neo btn-neo-yellow flex-grow-1" onclick="resetToDefault()">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> คืนค่าเริ่มต้น
+        </button>
+        <button type="button" class="btn-neo btn-neo-green flex-grow-2" id="btnSavePermissionsMobile" onclick="savePermissions()">
+            <i class="bi bi-save-fill me-1"></i> บันทึกการตั้งค่าสิทธิ์
+        </button>
     </div>
 
+    <!-- JavaScript Logic -->
     <script>
+        // 1. ตรวจสอบสิทธิ์การเข้าใช้งาน (Level 5 เท่านั้น)
         const userRole = localStorage.getItem('userRole') || '';
         const userLevel = parseInt(localStorage.getItem('userLevel') || 0);
-        const userLogin = localStorage.getItem('userLogin') || '';
+        const userLogin = localStorage.getItem('userLogin') || localStorage.getItem('userName') || 'Admin';
 
-        // เฉพาะ Level 5 เท่านั้นที่ใช้งานหน้านี้ได้
         if (!userRole || userLevel !== 5) {
-            alert('❌ เฉพาะผู้จัดการและผู้บริหาร (Level 5) เท่านั้นที่สามารถจัดการตั้งค่าสิทธิ์ระบบได้');
-            window.location.href = "Home.html";
+            Swal.fire({
+                icon: 'error',
+                title: 'ไม่มีสิทธิ์เข้าถึง',
+                text: 'เฉพาะผู้จัดการและผู้บริหาร (Level 5) เท่านั้นที่สามารถจัดการตั้งค่าสิทธิ์ระบบได้',
+                confirmButtonColor: '#191A23'
+            }).then(() => {
+                window.location.href = "Home.html";
+            });
         }
 
+        // 2. นิยามโครงสร้าง Level และโมดูล
         const levelsDef = [
-            { level: 1, name: "Level 1: พนักงานทั่วไป (Staff)", bg: "#e9ecef" },
-            { level: 2, name: "Level 2: Supervisor", bg: "#e2e3e5" },
-            { level: 3, name: "Level 3: Engineer", bg: "#d1e7dd" },
-            { level: 4, name: "Level 4: QC", bg: "#cff4fc" },
-            { level: 5, name: "Level 5: Admin / Management", bg: "#B9FF66" },
-            { level: 6, name: "Level 6: Stock Only", bg: "#f8d7da" },
-            { level: 7, name: "Level 7: ช่างซ่อมบำรุง (Maint)", bg: "#fff3cd" },
-            { level: 8, name: "Level 8: ช่างห้องเครื่อง (Engine)", bg: "#ffe5d0" }
+            { level: 1, name: "Level 1: พนักงานทั่วไป (Staff)", shortName: "L1: Staff", icon: "👤", color: "#6C757D", bg: "#F1F3F5" },
+            { level: 2, name: "Level 2: Supervisor / หน.แผนก", shortName: "L2: Supervisor", icon: "👔", color: "#0D6EFD", bg: "#E7F1FF" },
+            { level: 3, name: "Level 3: วิศวกร (Engineer)", shortName: "L3: Engineer", icon: "🛠️", color: "#198754", bg: "#E8F5E9" },
+            { level: 4, name: "Level 4: ตรวจสอบคุณภาพ (QC)", shortName: "L4: QC", icon: "🔍", color: "#0DCAF0", bg: "#E0F7FA" },
+            { level: 5, name: "Level 5: Admin / ผู้บริหาร", shortName: "L5: Admin/Executive", icon: "👑", color: "#FFC107", bg: "#FFF9C4" },
+            { level: 6, name: "Level 6: พนักงานคลัง (Stock)", shortName: "L6: Stock Only", icon: "📦", color: "#D63384", bg: "#FCE4EC" },
+            { level: 7, name: "Level 7: ช่างซ่อมบำรุง (Maint)", shortName: "L7: Maintenance", icon: "🔧", color: "#FD7E14", bg: "#FFF3E0" },
+            { level: 8, name: "Level 8: ช่างห้องเครื่อง (Engine)", shortName: "L8: Engine Room", icon: "⚡", color: "#20C997", bg: "#E0F2F1" }
         ];
 
         const modulesDef = [
-            { key: "index", label: "แจ้งซ่อม" },
-            { key: "monitor", label: "Monitor" },
-            { key: "inventory", label: "คลังอะไหล่" },
-            { key: "pm", label: "แผน PM" },
-            { key: "maintenance", label: "งานซ่อมบำรุง" },
-            { key: "engine_room", label: "งานห้องเครื่อง" },
-            { key: "dashboard", label: "Dashboard" },
-            { key: "handover", label: "รับมอบงาน" },
-            { key: "verify", label: "ทวนสอบงาน" },
-            { key: "approve", label: "อนุมัติงาน" },
-            { key: "signatures", label: "จัดการลายเซ็น" },
-            { key: "role_config", label: "ตั้งค่าสิทธิ์" }
+            { key: "index", label: "แจ้งซ่อม", desc: "แบบฟอร์มเปิดใบงานแจ้งซ่อม", icon: "📋", badgeColor: "#0056b3" },
+            { key: "monitor", label: "ติดตามงาน (Monitor)", desc: "กระดานติดตามสถานะงานซ่อม", icon: "📊", badgeColor: "#191A23" },
+            { key: "inventory", label: "คลังอะไหล่", desc: "จัดการสต็อกและเบิกจ่ายอะไหล่", icon: "📦", badgeColor: "#0DCAF0" },
+            { key: "pm", label: "แผนงาน PM", desc: "ระบบบำรุงรักษาเชิงป้องกัน", icon: "📅", badgeColor: "#198754" },
+            { key: "maintenance", label: "งานช่างซ่อมบำรุง", desc: "จัดการงานซ่อมฝ่ายซ่อมบำรุง", icon: "🔧", badgeColor: "#FD7E14" },
+            { key: "engine_room", label: "งานช่างห้องเครื่อง", desc: "จัดการงานซ่อมฝ่ายห้องเครื่อง", icon: "⚡", badgeColor: "#20C997" },
+            { key: "dashboard", label: "Dashboard (Admin)", desc: "แผงควบคุมและจัดการงาน SOP", icon: "📈", badgeColor: "#FFC107" },
+            { key: "handover", label: "รับมอบงาน", desc: "ตรวจสอบและรับมอบงานซ่อม", icon: "🤝", badgeColor: "#6F42C1" },
+            { key: "verify", label: "ทวนสอบงาน (QC)", desc: "ตรวจสอบและประเมินคุณภาพงาน", icon: "🔍", badgeColor: "#0DCAF0" },
+            { key: "approve", label: "อนุมัติงานซ่อม", desc: "พิจารณาอนุมัติแผนงานซ่อม", icon: "✅", badgeColor: "#198754" },
+            { key: "signatures", label: "จัดการลายเซ็น", desc: "ตั้งค่ารูปลายเซ็นอิเล็กทรอนิกส์", icon: "✍️", badgeColor: "#6C757D" },
+            { key: "role_config", label: "ตั้งค่าสิทธิ์ระบบ", desc: "กำหนดสิทธิ์การเข้าถึงโมดูล", icon: "🔐", badgeColor: "#D63384" }
         ];
 
-        // ค่า Default Matrix เริ่มต้น
+        // ค่าเริ่มต้น
         const defaultPermissions = {
             1: { index: true, monitor: true, inventory: true, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: false, verify: false, approve: false, signatures: false, role_config: false },
             2: { index: true, monitor: true, inventory: false, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: true, verify: false, approve: false, signatures: false, role_config: false },
@@ -220,38 +491,160 @@
         };
 
         let currentPermissions = JSON.parse(JSON.stringify(defaultPermissions));
+        let activeView = (window.innerWidth < 992) ? 'card' : 'table';
 
-        window.onload = function() {
-            loadPermissions();
-        };
-
+        // 3. โหลดข้อมูลสิทธิ์จาก Backend API
         function loadPermissions() {
             google.script.run
                 .withSuccessHandler(function(res) {
                     if (res && res.success && res.permissions) {
                         currentPermissions = res.permissions;
                     }
-                    renderMatrix();
+                    renderUI();
                 })
                 .withFailureHandler(function(err) {
-                    alert('❌ ไม่สามารถดึงสิทธิ์จากเซิร์ฟเวอร์ได้: ' + err.message);
-                    renderMatrix();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ดึงข้อมูลไม่สำเร็จ',
+                        text: 'ไม่สามารถดึงข้อมูลสิทธิ์จากเซิร์ฟเวอร์ได้: ' + (err.message || err) + ' (ใช้ค่ามาตรฐานแทน)',
+                        confirmButtonColor: '#191A23'
+                    });
+                    renderUI();
                 })
                 .getRolePermissions();
         }
 
-        function renderMatrix() {
-            const tbody = document.getElementById('matrixTbody');
-            let html = '';
+        // 4. สลับโหมดการแสดงผล (Card vs Table)
+        function switchView(view) {
+            activeView = view;
+            document.getElementById('viewCardBtn').classList.toggle('active', view === 'card');
+            document.getElementById('viewTableBtn').classList.toggle('active', view === 'table');
+            renderUI();
+        }
+
+        // 5. เรนเดอร์ UI ตามโหมดที่เลือก
+        function renderUI() {
+            document.getElementById('viewCardBtn').classList.toggle('active', activeView === 'card');
+            document.getElementById('viewTableBtn').classList.toggle('active', activeView === 'table');
+
+            const container = document.getElementById('contentArea');
+
+            if (activeView === 'card') {
+                renderCardView(container);
+            } else {
+                renderTableView(container);
+            }
+        }
+
+        // 6. เรนเดอร์แบบ Card Accordion View (เน้นใช้งานบนมือถือ/แท็บเล็ต)
+        function renderCardView(container) {
+            let html = '<div class="row g-3">';
+
+            levelsDef.forEach((lvl, idx) => {
+                const lId = lvl.level;
+                const p = currentPermissions[lId] || {};
+                
+                // นับจำนวนโมดูลที่เปิดอยู่
+                let activeCount = 0;
+                modulesDef.forEach(m => {
+                    if (p[m.key] === true || p[m.key] === "TRUE") activeCount++;
+                });
+
+                html += `
+                    <div class="col-12 col-xl-6">
+                        <div class="level-accordion-card">
+                            <div class="level-header" style="background-color: ${lvl.bg};" onclick="toggleAccordion('acc_${lId}')">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="fs-4">${lvl.icon}</span>
+                                    <div>
+                                        <div class="fw-bold fs-6 text-dark">${lvl.name}</div>
+                                        <div class="small text-muted" id="badge_count_${lId}">
+                                            สิทธิ์ที่เปิดใช้งาน: <span class="fw-bold text-dark">${activeCount}/${modulesDef.length} โมดูล</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-dark fw-bold px-2 py-1" onclick="event.stopPropagation(); toggleLevelAll(${lId}, true)" title="เปิดทั้งหมด">เปิดหมด</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary fw-bold px-2 py-1" onclick="event.stopPropagation(); toggleLevelAll(${lId}, false)" title="ปิดทั้งหมด">ปิดหมด</button>
+                                    <i class="bi bi-chevron-down fs-5 ms-1" id="icon_acc_${lId}"></i>
+                                </div>
+                            </div>
+
+                            <div class="accordion-collapse collapse show" id="acc_${lId}">
+                                <div class="module-grid">
+                `;
+
+                modulesDef.forEach(mod => {
+                    const isChecked = p[mod.key] === true || p[mod.key] === "TRUE";
+                    html += `
+                        <div class="module-item-card ${isChecked ? 'active' : ''}" id="card_perm_${lId}_${mod.key}">
+                            <div class="module-info">
+                                <div class="module-icon">${mod.icon}</div>
+                                <div>
+                                    <div class="fw-bold small text-dark">${mod.label}</div>
+                                    <div class="text-muted" style="font-size: 0.72rem;">${mod.desc}</div>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input perm-switch" type="checkbox" 
+                                       id="perm_${lId}_${mod.key}" 
+                                       data-level="${lId}" 
+                                       data-module="${mod.key}"
+                                       ${isChecked ? 'checked' : ''}
+                                       onchange="onSwitchChanged(${lId}, '${mod.key}', this.checked)">
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // 7. เรนเดอร์แบบ Table Matrix View (สำหรับหน้าจอคอมพิวเตอร์ / ตารางภาพรวม)
+        function renderTableView(container) {
+            let html = `
+                <div class="matrix-table-container">
+                    <table class="matrix-table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ระดับผู้ใช้ (User Level)</th>
+            `;
+
+            modulesDef.forEach(mod => {
+                html += `<th title="${mod.desc}">${mod.icon} ${mod.label}</th>`;
+            });
+
+            html += `
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
 
             levelsDef.forEach(lvl => {
                 const lId = lvl.level;
                 const p = currentPermissions[lId] || {};
 
                 html += `<tr>`;
-                html += `<td class="text-start ps-3 fw-bold" style="background-color: ${lvl.bg};">
-                            <span class="badge-level bg-white text-dark">${lvl.name}</span>
-                         </td>`;
+                html += `
+                    <td style="background-color: ${lvl.bg};">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fs-5">${lvl.icon}</span>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.88rem;">${lvl.shortName}</div>
+                                <div class="x-small text-muted" style="font-size: 0.72rem;">${lvl.name}</div>
+                            </div>
+                        </div>
+                    </td>
+                `;
 
                 modulesDef.forEach(mod => {
                     const isChecked = p[mod.key] === true || p[mod.key] === "TRUE";
@@ -262,7 +655,8 @@
                                        id="perm_${lId}_${mod.key}" 
                                        data-level="${lId}" 
                                        data-module="${mod.key}"
-                                       ${isChecked ? 'checked' : ''}>
+                                       ${isChecked ? 'checked' : ''}
+                                       onchange="onSwitchChanged(${lId}, '${mod.key}', this.checked)">
                             </div>
                         </td>
                     `;
@@ -271,51 +665,162 @@
                 html += `</tr>`;
             });
 
-            tbody.innerHTML = html;
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = html;
         }
 
+        // 8. การจัดการเมื่อผู้ใช้กดเปลี่ยน Switch
+        function onSwitchChanged(level, moduleKey, isChecked) {
+            if (!currentPermissions[level]) currentPermissions[level] = {};
+            currentPermissions[level][moduleKey] = isChecked;
+
+            // ปรับสีการ์ดถ้าอยู่ใน Card View
+            const cardEl = document.getElementById(`card_perm_${level}_${moduleKey}`);
+            if (cardEl) {
+                cardEl.classList.toggle('active', isChecked);
+            }
+
+            // อัปเดตตัวเลขนับสิทธิ์
+            updateLevelCountBadge(level);
+        }
+
+        // 9. เปิด/ปิด ทั้งหมดใน Level นั้นๆ
+        function toggleLevelAll(level, isEnable) {
+            if (!currentPermissions[level]) currentPermissions[level] = {};
+            
+            modulesDef.forEach(m => {
+                currentPermissions[level][m.key] = isEnable;
+                const sw = document.getElementById(`perm_${level}_${m.key}`);
+                if (sw) sw.checked = isEnable;
+                
+                const cardEl = document.getElementById(`card_perm_${level}_${m.key}`);
+                if (cardEl) cardEl.classList.toggle('active', isEnable);
+            });
+
+            updateLevelCountBadge(level);
+        }
+
+        function updateLevelCountBadge(level) {
+            const badge = document.getElementById(`badge_count_${level}`);
+            if (badge) {
+                let count = 0;
+                modulesDef.forEach(m => {
+                    if (currentPermissions[level] && currentPermissions[level][m.key]) count++;
+                });
+                badge.innerHTML = `สิทธิ์ที่เปิดใช้งาน: <span class="fw-bold text-dark">${count}/${modulesDef.length} โมดูล</span>`;
+            }
+        }
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            const icon = document.getElementById(`icon_${id}`);
+            if (el) {
+                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(el);
+                bsCollapse.toggle();
+                if (icon) {
+                    setTimeout(() => {
+                        icon.className = el.classList.contains('show') ? 'bi bi-chevron-down fs-5 ms-1' : 'bi bi-chevron-right fs-5 ms-1';
+                    }, 350);
+                }
+            }
+        }
+
+        // 10. คืนค่าเริ่มต้น (Reset to Default Matrix)
         function resetToDefault() {
-            if(!confirm('ยืนยันการคืนค่าสิทธิ์ตั้งต้น (Default Matrix) สำหรับทุก Level?')) return;
-            currentPermissions = JSON.parse(JSON.stringify(defaultPermissions));
-            renderMatrix();
+            Swal.fire({
+                title: 'คืนค่าสิทธิ์เริ่มต้น?',
+                text: 'คุณต้องการคืนค่าสิทธิ์ตั้งต้น (Default Matrix) สำหรับทุก Level ใช่หรือไม่?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#191A23',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'ใช่, คืนค่าเริ่มต้น',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    currentPermissions = JSON.parse(JSON.stringify(defaultPermissions));
+                    renderUI();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'คืนค่าเรียบร้อย',
+                        text: 'กรุณากด "บันทึกการตั้งค่าสิทธิ์" เพื่อบันทึกลงฐานข้อมูล',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            });
         }
 
+        // 11. บันทึกสิทธิ์ลงฐานข้อมูล
         function savePermissions() {
-            const switches = document.querySelectorAll('.perm-switch');
-            let newPerms = {};
+            const btnDesktop = document.getElementById('btnSavePermissions');
+            const btnMobile = document.getElementById('btnSavePermissionsMobile');
+            
+            const originalDesktopText = btnDesktop ? btnDesktop.innerHTML : '';
+            const originalMobileText = btnMobile ? btnMobile.innerHTML : '';
 
-            levelsDef.forEach(lvl => {
-                newPerms[lvl.level] = {};
+            if (btnDesktop) { btnDesktop.disabled = true; btnDesktop.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> กำลังบันทึก...'; }
+            if (btnMobile) { btnMobile.disabled = true; btnMobile.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> บันทึก...'; }
+
+            Swal.fire({
+                title: 'กำลังบันทึกข้อมูลสิทธิ์...',
+                text: 'กรุณารอสักครู่ ระบบกำลังอัปเดตสิทธิ์เข้าถึงโมดูลทั้งหมด',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
             });
-
-            switches.forEach(sw => {
-                const l = sw.getAttribute('data-level');
-                const m = sw.getAttribute('data-module');
-                newPerms[l][m] = sw.checked;
-            });
-
-            const btn = document.getElementById('btnSavePermissions');
-            const orgText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> กำลังบันทึก...';
 
             google.script.run
                 .withSuccessHandler(function(res) {
-                    btn.disabled = false;
-                    btn.innerHTML = orgText;
+                    if (btnDesktop) { btnDesktop.disabled = false; btnDesktop.innerHTML = originalDesktopText; }
+                    if (btnMobile) { btnMobile.disabled = false; btnMobile.innerHTML = originalMobileText; }
+
                     if (res && res.success) {
-                        alert('✅ ' + res.message);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'บันทึกสำเร็จ!',
+                            text: res.message || 'บันทึกการตั้งค่าสิทธิ์เรียบร้อยแล้ว',
+                            confirmButtonColor: '#191A23'
+                        });
                     } else {
-                        alert('❌ เกิดข้อผิดพลาด: ' + (res ? res.message : 'ไม่สามารถบันทึกได้'));
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'บันทึกไม่สำเร็จ',
+                            text: res ? res.message : 'เกิดข้อผิดพลาดในการบันทึกข้อมูล',
+                            confirmButtonColor: '#191A23'
+                        });
                     }
                 })
                 .withFailureHandler(function(err) {
-                    btn.disabled = false;
-                    btn.innerHTML = orgText;
-                    alert('❌ เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
+                    if (btnDesktop) { btnDesktop.disabled = false; btnDesktop.innerHTML = originalDesktopText; }
+                    if (btnMobile) { btnMobile.disabled = false; btnMobile.innerHTML = originalMobileText; }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        text: err.message || err,
+                        confirmButtonColor: '#191A23'
+                    });
                 })
-                .saveRolePermissions(newPerms, userLogin);
+                .saveRolePermissions(currentPermissions, userLogin);
         }
+
+        // เริ่มต้นการทำงานเมื่อโหลดหน้าเสร็จสิ้น
+        window.onload = function() {
+            loadPermissions();
+        };
+
+        // สลับโหมดอัตโนมัติตามขนาดหน้าจอเมื่อ Resize
+        window.onresize = function() {
+            const shouldBeCard = window.innerWidth < 992;
+            if (shouldBeCard && activeView === 'table') {
+                switchView('card');
+            }
+        };
     </script>
 </body>
 </html>
