@@ -1,4 +1,4 @@
-﻿# คู่มือการติดตั้งและใช้งานระบบ CMMS (Standalone Frontend + Google Apps Script API)
+# คู่มือการติดตั้งและใช้งานระบบ CMMS (Standalone Frontend + Google Apps Script API)
 
 ระบบนี้ได้รับการปรับปรุงสถาปัตยกรรมให้แยกส่วนการทำงานระหว่าง **Frontend (หน้าเว็บ HTML/JS/CSS)** และ **Backend (Google Apps Script API + Google Sheets Database)** ออกจากกันอย่างสมบูรณ์แบบ เพื่อแก้ไขปัญหาการล็อกอินไม่ได้บน Safari, iOS, LINE In-App Browser และมือถือบางรุ่นที่บล็อก 3rd-party Cookies / iframe sandbox
 
@@ -79,20 +79,20 @@ const CONFIG = {
    - **Branch:** เลือก `main` หรือ `master` และเลือกโฟลเดอร์ `/(root)`
    - กดปุ่ม **Save**
 9. รอประมาณ 1-2 นาที GitHub จะสร้างลิงก์เว็บไซต์ให้ เช่น:
-   `https://<your-username>.github.io/cmms-frontend/Login.html`
-
----
-
-## 🔗 ขั้นตอนที่ 4: อัปเดต FRONTEND_URL ใน Backend (สำหรับ LINE Notifications)
-
-เพื่อให้ข้อความแจ้งเตือนทาง LINE แจ้งซ่อม ส่งลิงก์มายัง Frontend ใหม่บน GitHub Pages:
-1. เปิดไฟล์ `รหัส.gs` ใน Apps Script
-2. ค้นหาบรรทัดที่มีตัวแปร `FRONTEND_URL` (อยู่ด้านบนสุดของไฟล์)
-3. แก้ไข URL ให้ตรงกับลิงก์ GitHub Pages ของท่าน เช่น:
-   ```javascript
-   var FRONTEND_URL = "https://<your-username>.github.io/cmms-frontend";
-   ```
-4. กด **Deploy** -> **จัดการการทำให้ใช้งานได้ (Manage deployments)** -> แก้ไขเป็น **เวอร์ชันใหม่ (New version)** แล้วกดบันทึก
+   `https://EngineeringDepSethachon.github.io/cmms-frontend/Login.html`
+83: 
+84: ---
+85: 
+86: ## 🔗 ขั้นตอนที่ 4: อัปเดต FRONTEND_URL ใน Backend (สำหรับ LINE Notifications)
+87: 
+88: เพื่อให้ข้อความแจ้งเตือนทาง LINE แจ้งซ่อม ส่งลิงก์มายัง Frontend ใหม่บน GitHub Pages:
+89: 1. เปิดไฟล์ `รหัส.gs` ใน Apps Script
+90: 2. ค้นหาบรรทัดที่มีตัวแปร `FRONTEND_URL` (อยู่ด้านบนสุดของไฟล์)
+91: 3. แก้ไข URL ให้ตรงกับลิงก์ GitHub Pages ของท่าน เช่น:
+92:    ```javascript
+93:    var FRONTEND_URL = "https://EngineeringDepSethachon.github.io/cmms-frontend";
+94:    ```
+95: 4. กด **Deploy** -> **จัดการการทำให้ใช้งานได้ (Manage deployments)** -> แก้ไขเป็น **เวอร์ชันใหม่ (New version)** แล้วกดบันทึก
 
 ---
 

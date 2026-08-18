@@ -1,245 +1,715 @@
-<!-- แผงควบคุม (Admin): จัดการงานซ่อมผ่านระบบ SOP 4 ขั้นตอน (Expandable Row UI) -->
+<!-- แผงควบคุม (Admin): จัดการงานซ่อมผ่านระบบ SOP 4 ขั้นตอน (Expandable Row UI & Mobile Responsive) -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CMMS Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CMMS Dashboard - แผงควบคุมงานซ่อม</title>
+    <!-- CSS Dependencies -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="config.js"></script>
     <script src="api.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
     <style>
         :root {
             --neo-dark: #191A23;
-            --neo-light: #F3F3F3;
+            --neo-light: #F8F9FA;
             --neo-green: #B9FF66;
             --neo-white: #FFFFFF;
+            --neo-yellow: #FFD166;
+            --neo-red: #FF6B6B;
+            --neo-blue: #4D96FF;
             --border-width: 2px;
             --shadow-depth: 4px;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body { 
-            background-color: var(--neo-white); 
+            background-color: #F4F6F8; 
             font-family: 'Sarabun', sans-serif; 
             color: var(--neo-dark);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, h6, .font-prompt {
+            font-family: 'Prompt', sans-serif;
         }
 
         /* Neo-Brutalist Header */
         .system-header { 
-            background-color: var(--neo-white); 
+            background-color: var(--neo-green); 
             color: var(--neo-dark); 
-            padding: 20px 0; 
+            padding: 12px 0; 
             border-bottom: var(--border-width) solid var(--neo-dark); 
-            margin-bottom: 2rem;
+            box-shadow: 0 4px 0 var(--neo-dark);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .header-brand {
             font-weight: 800;
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             display: flex;
             align-items: center;
+            user-select: none;
         }
 
-        .header-brand i { margin-right: 10px; color: var(--neo-dark); }
+        @media (min-width: 768px) {
+            .header-brand { font-size: 1.45rem; }
+        }
 
-        /* Neo-Brutalist Buttons */
+        .header-brand i { 
+            font-size: 1.5rem; 
+            color: var(--neo-dark); 
+        }
+
+        /* Buttons Neo-Brutalist */
         .btn-neo {
             background-color: var(--neo-white);
             color: var(--neo-dark);
             border: var(--border-width) solid var(--neo-dark);
-            border-radius: 8px;
-            font-weight: 600;
-            padding: 6px 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            padding: 7px 14px;
             box-shadow: 2px 2px 0px var(--neo-dark);
             transition: all 0.1s ease;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
         }
-        .btn-neo:hover { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); background-color: var(--neo-green); color: var(--neo-dark); }
-        
-        .btn-neo-dark { background-color: var(--neo-dark); color: var(--neo-white); }
-        .btn-neo-dark:hover { background-color: var(--neo-dark); color: var(--neo-green); }
 
-        .btn-neo-green { background-color: var(--neo-green); color: var(--neo-dark); }
-        .btn-neo-green:hover { background-color: var(--neo-green); transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); }
+        .btn-neo:hover:not(:disabled) { 
+            transform: translate(2px, 2px); 
+            box-shadow: 0px 0px 0px var(--neo-dark); 
+            background-color: var(--neo-green); 
+            color: var(--neo-dark); 
+        }
 
-        /* User Badge */
+        .btn-neo:active:not(:disabled) {
+            transform: translate(3px, 3px);
+            box-shadow: 0px 0px 0px var(--neo-dark);
+        }
+
+        .btn-neo-dark { 
+            background-color: var(--neo-dark); 
+            color: var(--neo-white); 
+        }
+        .btn-neo-dark:hover:not(:disabled) { 
+            background-color: var(--neo-dark); 
+            color: var(--neo-green); 
+        }
+
+        .btn-neo-green { 
+            background-color: var(--neo-green); 
+            color: var(--neo-dark); 
+        }
+
+        .btn-neo-primary {
+            background-color: var(--neo-blue);
+            color: #fff;
+        }
+        .btn-neo-primary:hover:not(:disabled) {
+            background-color: #357ae8;
+            color: #fff;
+        }
+
+        /* User Info Badge */
         .user-info-badge {
-            background-color: var(--neo-green);
+            background-color: var(--neo-white);
             color: var(--neo-dark);
             border: var(--border-width) solid var(--neo-dark);
-            border-radius: 20px;
-            padding: 5px 15px;
-            font-weight: bold;
-            font-size: 0.85rem;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-weight: 700;
+            font-size: 0.82rem;
             box-shadow: 2px 2px 0px var(--neo-dark);
+            display: inline-flex;
+            align-items: center;
         }
 
         /* Stat Cards */
         .stat-card { 
-            border-radius: 12px; 
+            border-radius: 14px; 
             border: var(--border-width) solid var(--neo-dark); 
-            box-shadow: 4px 4px 0px var(--neo-dark); 
-            background-color: var(--neo-light);
+            box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark); 
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            user-select: none;
+        }
+
+        .stat-card:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px var(--neo-dark);
+        }
+
+        .stat-card.active-filter {
+            border-color: var(--neo-dark);
+            outline: 3px solid var(--neo-dark);
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px var(--neo-dark);
+        }
+
+        .stat-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-value {
+            font-family: 'Prompt', sans-serif;
+            font-size: 1.85rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        @media (min-width: 768px) {
+            .stat-value { font-size: 2.2rem; }
+        }
+
+        .stat-yellow { background-color: #FFF3CD; }
+        .stat-blue { background-color: #D1E7DD; }
+        .stat-dark { background-color: var(--neo-dark); color: var(--neo-white); }
+        .stat-green { background-color: var(--neo-green); }
+
+        /* Filter Toolbar */
+        .filter-panel {
+            background-color: var(--neo-white);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 14px;
+            box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark);
+            padding: 14px 16px;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control-neo, .form-select-neo {
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background-color: var(--neo-white);
             color: var(--neo-dark);
         }
-        .stat-green { background-color: var(--neo-green); }
-        .stat-dark { background-color: var(--neo-dark); color: var(--neo-white); }
-        
-        /* Table Styles */
+
+        .form-control-neo:focus, .form-select-neo:focus {
+            border-color: var(--neo-dark);
+            box-shadow: 0 0 0 3px rgba(185, 255, 102, 0.6);
+            outline: none;
+        }
+
+        /* Table Card Container */
         .table-card {
             border: var(--border-width) solid var(--neo-dark);
-            border-radius: 12px;
-            box-shadow: 4px 4px 0px var(--neo-dark);
+            border-radius: 14px;
+            box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark);
+            background-color: var(--neo-white);
+            overflow: hidden;
+            margin-bottom: 2rem;
         }
-        .table-dark {
+
+        .table-custom {
+            margin-bottom: 0;
+            width: 100%;
+        }
+
+        .table-custom thead {
             background-color: var(--neo-dark);
             color: var(--neo-white);
-            border-bottom: var(--border-width) solid var(--neo-dark);
         }
-        .table-dark th { border-color: var(--neo-dark); }
 
-        .expandable-row { cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #ccc; }
-        .expandable-row:hover { background-color: var(--neo-light) !important; }
-        .detail-row { display: none; background-color: #fafafa; border-bottom: 2px solid var(--neo-dark); }
-        .detail-container { padding: 20px; border-left: 5px solid var(--neo-green); }
-        .job-image-preview { max-height: 280px; object-fit: contain; border-radius: 8px; border: var(--border-width) solid var(--neo-dark); box-shadow: 2px 2px 0px var(--neo-dark); }
+        .table-custom th {
+            padding: 14px 16px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: none;
+            white-space: nowrap;
+        }
 
-        .badge-status { border: 1px solid var(--neo-dark); font-weight: bold; color: var(--neo-dark) !important; }
-        .bg-success-neo { background-color: var(--neo-green) !important; }
-        .bg-warning-neo { background-color: #ffd700 !important; }
-        .bg-info-neo { background-color: #0dcaf0 !important; }
-        .bg-danger-neo { background-color: #dc3545 !important; color: white !important;}
+        .table-custom td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #E9ECEF;
+            font-size: 0.92rem;
+        }
 
+        .expandable-row { 
+            cursor: pointer; 
+            transition: background 0.15s ease; 
+        }
+
+        .expandable-row:hover { 
+            background-color: #F8FFF0 !important; 
+        }
+
+        .expandable-row.row-expanded {
+            background-color: #F0FDF4 !important;
+            border-bottom: 2px dashed var(--neo-dark);
+        }
+
+        .detail-row { 
+            display: none; 
+            background-color: #F8F9FA; 
+            border-bottom: 2px solid var(--neo-dark); 
+        }
+
+        .detail-container { 
+            padding: 16px 20px; 
+            border-left: 6px solid var(--neo-green); 
+            background-color: #FAFAFA;
+        }
+
+        .job-image-preview { 
+            max-height: 220px; 
+            width: 100%;
+            object-fit: cover; 
+            border-radius: 10px; 
+            border: var(--border-width) solid var(--neo-dark); 
+            box-shadow: 2px 2px 0px var(--neo-dark); 
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        .job-image-preview:hover {
+            transform: scale(1.02);
+        }
+
+        /* Badges */
+        .badge-status { 
+            border: 1.5px solid var(--neo-dark); 
+            font-weight: 700; 
+            font-size: 0.78rem;
+            padding: 5px 10px;
+            border-radius: 6px;
+            box-shadow: 1px 1px 0px var(--neo-dark);
+            display: inline-block;
+            text-align: center;
+        }
+
+        .bg-status-pending { background-color: #FFD166; color: var(--neo-dark); }
+        .bg-status-working { background-color: #4D96FF; color: #fff; }
+        .bg-status-approve { background-color: #A0C4FF; color: var(--neo-dark); }
+        .bg-status-handover { background-color: #FFC6FF; color: var(--neo-dark); }
+        .bg-status-done { background-color: var(--neo-green); color: var(--neo-dark); }
+        .bg-status-cancel { background-color: var(--neo-red); color: #fff; }
+
+        /* Progress Bar Neo */
+        .progress-neo {
+            height: 10px;
+            background-color: #E9ECEF;
+            border: 1.5px solid var(--neo-dark);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-neo .progress-bar {
+            background-color: var(--neo-green);
+            border-right: 1.5px solid var(--neo-dark);
+        }
+
+        /* Mobile Card View (< 992px) */
+        @media (max-width: 991.98px) {
+            .table-custom thead {
+                display: none;
+            }
+
+            .table-custom, .table-custom tbody, .table-custom tr, .table-custom td {
+                display: block;
+                width: 100% !important;
+            }
+
+            .table-custom tbody {
+                padding: 12px;
+            }
+
+            .expandable-row {
+                background-color: var(--neo-white);
+                border: var(--border-width) solid var(--neo-dark) !important;
+                border-radius: 12px;
+                margin-bottom: 12px;
+                padding: 14px !important;
+                box-shadow: 3px 3px 0px var(--neo-dark);
+            }
+
+            .expandable-row td {
+                padding: 4px 0 !important;
+                border: none !important;
+            }
+
+            .detail-row {
+                border-radius: 12px;
+                margin-bottom: 16px;
+                overflow: hidden;
+                border: var(--border-width) solid var(--neo-dark);
+                box-shadow: 3px 3px 0px var(--neo-dark);
+            }
+
+            .detail-row td {
+                padding: 0 !important;
+                border: none !important;
+            }
+
+            .detail-container {
+                border-left: none;
+                border-top: 4px solid var(--neo-green);
+                padding: 16px 14px;
+            }
+        }
+
+        /* Animation & Utility */
+        .rotating {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .chevron-icon {
+            transition: transform 0.2s ease;
+        }
+
+        .row-expanded .chevron-icon {
+            transform: rotate(90deg);
+        }
     </style>
 </head>
 <body>
     <!-- หัวกระดาษของระบบ (System Header) -->
-        <header class="system-header border-bottom border-3 border-dark mb-4" style="background-color: var(--neo-green); padding: 15px 0; box-shadow: 0 4px 0 var(--neo-dark); position: relative; z-index: 10;">
-        <div class="container-fluid px-md-4 d-flex justify-content-between align-items-center">
-            <div class="header-brand fw-bold fs-4 text-dark" style="cursor:pointer;" onclick="window.location.href='Home.html'">
-                <i class="bi bi-tools me-2 fs-2"></i> <span class="d-none d-sm-inline">CMMS System</span><span class="d-inline d-sm-none">CMMS</span>
+    <header class="system-header">
+        <div class="container-fluid px-3 px-md-4 d-flex justify-content-between align-items-center">
+            <div class="header-brand" style="cursor:pointer;" onclick="window.location.href='Home.html'">
+                <i class="bi bi-tools me-2"></i>
+                <span class="d-none d-sm-inline">CMMS Dashboard</span>
+                <span class="d-inline d-sm-none">Dashboard</span>
             </div>
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <div class="user-info-badge d-none d-lg-block fw-bold bg-white text-dark border border-2 border-dark rounded px-3 py-2" style="box-shadow: 2px 2px 0 var(--neo-dark);">
-                    <i class="bi bi-person-badge-fill me-1"></i> <span id="topUserName">-</span> | <span id="topUserDept">-</span>
+            <div class="d-flex align-items-center gap-1 gap-md-2">
+                <div class="user-info-badge d-none d-lg-flex me-1">
+                    <i class="bi bi-person-badge-fill me-1"></i>
+                    <span id="topUserName">-</span>
+                    <span class="mx-1 text-muted">|</span>
+                    <span id="topUserDept">-</span>
                 </div>
-                <a href="Home.html" class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);"><i class="bi bi-house-door"></i><span class="d-none d-md-inline ms-1"> Home</span></a>
-                <button class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);" onclick="loadData()"><i class="bi bi-arrow-clockwise"></i></button>
-                <button class="btn btn-dark border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 #fff;" onclick="logout()"><i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline ms-1"> Logout</span></button>
+                <a href="Home.html" class="btn-neo" title="หน้าหลัก">
+                    <i class="bi bi-house-door"></i>
+                    <span class="d-none d-md-inline">หน้าหลัก</span>
+                </a>
+                <button class="btn-neo" id="btnRefresh" onclick="loadData()" title="รีเฟรชข้อมูล">
+                    <i class="bi bi-arrow-clockwise" id="refreshIcon"></i>
+                    <span class="d-none d-md-inline">รีเฟรช</span>
+                </button>
+                <button class="btn-neo btn-neo-dark" onclick="logout()" title="ออกจากระบบ">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="d-none d-md-inline">ออก</span>
+                </button>
             </div>
         </div>
     </header>
 
-    <div class="container-fluid py-2 px-md-4">
-        <div class="d-flex justify-content-between align-items-center mb-4 px-3">
-            <h2 class="fw-bold text-dark mb-0">Dashboard <span class="fs-5 fw-normal text-muted">Engineering Management</span></h2>
-            <div class="d-flex gap-2">
-                <select id="statusFilter" class="form-select border-dark" style="min-width: 160px;" onchange="applyFilter()">
-                    <option value="all">แสดงทุกสถานะ</option>
-                    <option value="pending">รอดำเนินการ (Pending)</option>
-                    <option value="in_progress">กำลังดำเนินงาน (In Progress)</option>
-                    <option value="completed">เสร็จสิ้น (Completed)</option>
-                    <option value="cancel">ยกเลิก (Cancelled)</option>
-                </select>
-
-        <div class="row g-3 mb-4 px-3">
-            <div class="col-6 col-md-3"><div class="card stat-card p-3 text-center h-100"><div class="small fw-bold">งานทั้งหมด</div><h2 class="fw-bold mb-0" id="total-jobs">0</h2></div></div>
-            <div class="col-6 col-md-3"><div class="card stat-card stat-dark p-3 text-center h-100"><div class="small fw-bold">รอดำเนินการ</div><h2 class="fw-bold mb-0 text-white" id="pending-jobs">0</h2></div></div>
-            <div class="col-6 col-md-3"><div class="card stat-card stat-green p-3 text-center h-100"><div class="small fw-bold">อยู่ระหว่างซ่อม</div><h2 class="fw-bold mb-0" id="processing-jobs">0</h2></div></div>
-            <div class="col-6 col-md-3"><div class="card stat-card p-3 text-center h-100" style="background:#fff;"><div class="small fw-bold">ซ่อมเสร็จแล้ว</div><h2 class="fw-bold mb-0" id="completed-jobs">0</h2></div></div>
-        </div>
-
-        <div class="card table-card overflow-hidden mx-3">
-            <div class="table-responsive">
-                <table class="table align-middle mb-0" style="min-width: 1000px;">
-                    <thead class="table-dark">
-                        <tr>
-                            <th style="width: 130px;">รหัสงาน</th>
-                            <th>ผู้แจ้ง / แผนก</th>
-                            <th>รายการ / สถานที่</th>
-                            <th>ปัญหาที่พบ</th>
-                            <th style="width: 140px;">ความคืบหน้า</th>
-                            <th style="width: 160px;">สถานะ</th>
-                            <th class="text-center" style="width: 100px;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ticketTable">
-                        <tr><td colspan="7" class="text-center p-5">⏳ กำลังดึงข้อมูลล่าสุด...</td></tr>
-                    </tbody>
-                </table>
+    <!-- เนื้อหาหลัก (Main Content) -->
+    <main class="container-fluid px-3 px-md-4 py-3">
+        <!-- Dashboard Header & Subtitle -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+            <div>
+                <h3 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-speedometer2 text-primary me-1"></i> แผงควบคุมงานซ่อม (CMMS Dashboard)
+                </h3>
+                <p class="text-muted small mb-0">ระบบติดตามและจัดการสถานะงานซ่อม SOP 4 ขั้นตอน</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-dark text-white p-2 rounded-3 border border-dark" id="lastUpdatedBadge">
+                    <i class="bi bi-clock me-1"></i> ข้อมูลล่าสุด: <span id="lastUpdatedTime">-</span>
+                </span>
             </div>
         </div>
-    </div>
+
+        <!-- 4 Stat Summary Cards (Clickable Filter Shortcuts) -->
+        <div class="row g-2 g-md-3 mb-3">
+            <!-- Total -->
+            <div class="col-6 col-lg-3">
+                <div class="stat-card" id="card-all" onclick="setQuickFilter('all')">
+                    <div class="stat-title text-muted">
+                        <span>งานทั้งหมด</span>
+                        <i class="bi bi-collection-fill text-dark fs-5"></i>
+                    </div>
+                    <div class="stat-value text-dark" id="total-jobs">0</div>
+                    <div class="small text-muted mt-1 d-none d-sm-block">รวมทุกสถานะ</div>
+                </div>
+            </div>
+            <!-- Pending -->
+            <div class="col-6 col-lg-3">
+                <div class="stat-card stat-yellow" id="card-pending" onclick="setQuickFilter('pending')">
+                    <div class="stat-title text-dark">
+                        <span>รอดำเนินการ</span>
+                        <i class="bi bi-hourglass-split text-warning-emphasis fs-5"></i>
+                    </div>
+                    <div class="stat-value text-dark" id="pending-jobs">0</div>
+                    <div class="small text-muted mt-1 d-none d-sm-block">รอจ่ายงาน/วางแผน</div>
+                </div>
+            </div>
+            <!-- In Progress -->
+            <div class="col-6 col-lg-3">
+                <div class="stat-card stat-blue" id="card-processing" onclick="setQuickFilter('processing')">
+                    <div class="stat-title text-dark">
+                        <span>กำลังซ่อม / อนุมัติ</span>
+                        <i class="bi bi-gear-wide-connected text-primary fs-5"></i>
+                    </div>
+                    <div class="stat-value text-dark" id="processing-jobs">0</div>
+                    <div class="small text-muted mt-1 d-none d-sm-block">อยู่ระหว่างปฏิบัติงาน</div>
+                </div>
+            </div>
+            <!-- Completed -->
+            <div class="col-6 col-lg-3">
+                <div class="stat-card stat-green" id="card-completed" onclick="setQuickFilter('completed')">
+                    <div class="stat-title text-dark">
+                        <span>เสร็จสิ้นสมบูรณ์</span>
+                        <i class="bi bi-check-circle-fill text-success-emphasis fs-5"></i>
+                    </div>
+                    <div class="stat-value text-dark" id="completed-jobs">0</div>
+                    <div class="small text-muted mt-1 d-none d-sm-block">ปิดงาน & ส่งมอบแล้ว</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="filter-panel">
+            <div class="row g-2 align-items-center">
+                <!-- Search Input -->
+                <div class="col-12 col-md-5 col-lg-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-2 border-dark">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control form-control-neo" 
+                               placeholder="ค้นหารหัสใบงาน, ชื่อผู้แจ้ง, สถานที่ หรือ ปัญหา..." 
+                               oninput="applyFilter()">
+                        <button class="btn btn-outline-secondary border-2 border-dark" type="button" 
+                                onclick="clearSearch()" title="ล้างคำค้นหา">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Status Filter Dropdown -->
+                <div class="col-7 col-md-4 col-lg-4">
+                    <select id="statusFilter" class="form-select form-select-neo w-100" onchange="applyFilter()">
+                        <option value="all">📁 แสดงทุกสถานะ</option>
+                        <option value="pending">⏳ รอดำเนินการ (Pending)</option>
+                        <option value="processing">⚙️ กำลังดำเนินงาน (In Progress)</option>
+                        <option value="completed">✅ เสร็จสิ้นสมบูรณ์ (Completed)</option>
+                        <option value="rejected">❌ ตีกลับ / ยกเลิก (Rejected)</option>
+                    </select>
+                </div>
+
+                <!-- Count Badge -->
+                <div class="col-5 col-md-3 col-lg-2 text-end">
+                    <span class="badge bg-light text-dark border border-2 border-dark p-2 w-100 fw-bold" style="font-size:0.85rem;">
+                        แสดง <span id="filteredCount" class="text-primary">0</span> รายการ
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tickets Table / Mobile Card Container -->
+        <div class="table-card">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th style="width: 140px;">รหัสใบงาน</th>
+                        <th style="width: 180px;">ผู้แจ้ง / วันที่</th>
+                        <th style="width: 170px;">อุปกรณ์ / สถานที่</th>
+                        <th>ปัญหาที่พบ</th>
+                        <th style="width: 130px;">ความคืบหน้า</th>
+                        <th style="width: 150px;">สถานะ</th>
+                        <th class="text-center" style="width: 100px;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketTable">
+                    <tr>
+                        <td colspan="7" class="text-center p-5">
+                            <div class="spinner-border text-dark mb-2" role="status"></div>
+                            <div class="fw-bold text-muted">⏳ กำลังเชื่อมต่อและดึงข้อมูลล่าสุด...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
 
     <!-- Modal สำหรับแสดงความคืบหน้าการสร้าง PDF -->
     <div class="modal fade" id="pdfProgressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border border-2 border-dark rounded" style="box-shadow: 6px 6px 0px var(--neo-dark);">
-                <div class="modal-header bg-danger text-white border-bottom border-dark py-3">
-                    <h5 class="modal-title fw-bold m-0"><i class="bi bi-file-pdf"></i> กำลังสร้างเอกสาร PDF (A4)</h5>
+            <div class="modal-content border border-2 border-dark rounded-4" style="box-shadow: 6px 6px 0px var(--neo-dark); overflow: hidden;">
+                <div class="modal-header bg-danger text-white border-bottom border-2 border-dark py-3">
+                    <h5 class="modal-title fw-bold m-0 font-prompt">
+                        <i class="bi bi-file-pdf-fill me-1"></i> กำลังสร้างเอกสารใบงาน PDF (A4)
+                    </h5>
                 </div>
                 <div class="modal-body p-4">
                     <div class="text-center mb-3">
                         <div class="spinner-border text-danger mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
                         <h6 class="fw-bold text-dark fs-6" id="pdfProgressStatus">กำลังจัดเตรียมข้อมูล... (5%)</h6>
                     </div>
-                    <div class="progress border border-2 border-dark" style="height: 24px; border-radius: 8px; overflow: hidden;">
+                    <div class="progress border border-2 border-dark" style="height: 24px; border-radius: 8px; overflow: hidden; background: #FFF;">
                         <div id="pdfProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-danger fw-bold fs-6" role="progressbar" style="width: 5%">5%</div>
                     </div>
-                    <div class="text-muted small text-center mt-3">ระบบกำลังคัดลอก เขียนตัวแปร ดึงรูปภาพ และแปลงไฟล์ผ่าน Google Doc</div>
+                    <div class="text-muted small text-center mt-3">
+                        ระบบกำลังดึงรูปภาพ ผสานตัวแปร และแปลงเอกสารผ่าน Google Doc โปรดรอสักครู่
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal ขยายดูรูปภาพขนาดใหญ่ -->
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border border-2 border-dark rounded-3" style="box-shadow: 6px 6px 0px var(--neo-dark);">
+                <div class="modal-header bg-dark text-white py-2">
+                    <h6 class="modal-title fw-bold m-0" id="imageModalTitle"><i class="bi bi-image"></i> รูปภาพประกอบใบงาน</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-2 text-center bg-light">
+                    <img id="imageModalImg" src="" class="img-fluid rounded" style="max-height: 80vh; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
     <script>
+        // 1. ตรวจสอบสิทธิ์การเข้าใช้งาน
         const userRole = localStorage.getItem('userRole');
         const userLevel = parseInt(localStorage.getItem('userLevel') || 0);
-        if (!userRole || (userLevel !== 3 && userLevel < 5)) { window.location.href = "Login.html?target=Dashboard.html"; }
-
-        function updateTopNavbar() {
-            document.getElementById('topUserName').innerText = localStorage.getItem('userName') || 'Unknown';
-            if (document.getElementById('topUserDept')) document.getElementById('topUserDept').innerText = localStorage.getItem('userDept') || '-';
-            if (document.getElementById('topUserPos')) document.getElementById('topUserPos').innerText = localStorage.getItem('userPosition') || 'Staff';
+        if (!userRole || (userLevel !== 3 && userLevel < 5)) { 
+            window.location.href = "Login.html?target=Dashboard.html"; 
         }
 
-        function logout() { localStorage.clear(); window.location.href = "Login.html?target=Dashboard.html"; }
+        // 2. อัปเดตข้อมูลบน Navbar
+        function updateTopNavbar() {
+            const nameEl = document.getElementById('topUserName');
+            const deptEl = document.getElementById('topUserDept');
+            if (nameEl) nameEl.innerText = localStorage.getItem('userName') || 'Admin';
+            if (deptEl) deptEl.innerText = localStorage.getItem('userDept') || '-';
+        }
+
+        function logout() { 
+            localStorage.clear(); 
+            window.location.href = "Login.html?target=Dashboard.html"; 
+        }
 
         let allTickets = [];
+        let activeQuickFilter = 'all';
 
+        // 3. โหลดข้อมูลจาก Backend API
         function loadData() {
             const tbody = document.getElementById('ticketTable');
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5">⏳ กำลังดึงข้อมูล...</td></tr>';
-            google.script.run.withSuccessHandler(renderDashboard).withFailureHandler(err => {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center p-5 text-danger">
-                    <div class="alert alert-danger mx-auto" style="max-width: 500px;">
-                        <i class="bi bi-exclamation-triangle-fill"></i> <b>การเชื่อมต่อขัดข้อง:</b> ${err.message}<br>
-                        <small>กรุณากดปุ่มรีเฟรชอีกครั้ง หรือตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</small>
-                    </div>
-                </td></tr>`;
-            }).getDashboardData();
+            const refreshIcon = document.getElementById('refreshIcon');
+            const btnRefresh = document.getElementById('btnRefresh');
+
+            if (refreshIcon) refreshIcon.classList.add('rotating');
+            if (btnRefresh) btnRefresh.disabled = true;
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center p-5">
+                        <div class="spinner-border text-dark mb-2" role="status"></div>
+                        <div class="fw-bold text-muted">⏳ กำลังซิงค์ข้อมูลกับฐานข้อมูลล่าสุด...</div>
+                    </td>
+                </tr>`;
+
+            google.script.run
+                .withSuccessHandler(data => {
+                    if (refreshIcon) refreshIcon.classList.remove('rotating');
+                    if (btnRefresh) btnRefresh.disabled = false;
+                    
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    document.getElementById('lastUpdatedTime').innerText = timeStr;
+
+                    renderDashboard(data);
+                })
+                .withFailureHandler(err => {
+                    if (refreshIcon) refreshIcon.classList.remove('rotating');
+                    if (btnRefresh) btnRefresh.disabled = false;
+
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center p-4">
+                                <div class="alert alert-danger mx-auto border border-2 border-dark text-start" style="max-width: 550px; box-shadow: 4px 4px 0px var(--neo-dark);">
+                                    <h6 class="fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> การเชื่อมต่อขัดข้อง</h6>
+                                    <p class="small mb-2">${err.message || err}</p>
+                                    <button class="btn btn-sm btn-dark fw-bold" onclick="loadData()"><i class="bi bi-arrow-clockwise"></i> ลองใหม่อีกครั้ง</button>
+                                </div>
+                            </td>
+                        </tr>`;
+                })
+                .getDashboardData();
+        }
+
+        // 4. ตั้งค่า Quick Filter จาก Stat Cards
+        function setQuickFilter(type) {
+            activeQuickFilter = type;
+            const selectEl = document.getElementById('statusFilter');
+            if (selectEl) selectEl.value = type;
+
+            document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+            const activeCard = document.getElementById(`card-${type}`);
+            if (activeCard) activeCard.classList.add('active-filter');
+
+            applyFilter();
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            if (input) {
+                input.value = '';
+                applyFilter();
+            }
         }
 
         function applyFilter() {
             renderDashboard();
         }
 
+        // 5. แสดงผล Dashboard และตาราง
         function renderDashboard(data) {
             if (data) {
-                console.log("Rendering Dashboard Data:", data);
                 if (data.error) {
-                    console.error("Backend Error:", data.message);
-                    document.getElementById('ticketTable').innerHTML = `<tr><td colspan="7" class="text-center p-5 text-danger">❌ ${data.message}</td></tr>`;
+                    document.getElementById('ticketTable').innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center p-4 text-danger fw-bold">❌ ${data.message}</td>
+                        </tr>`;
                     return;
                 }
                 if (!data.allTickets) {
-                    console.error("Invalid data received:", data);
-                    document.getElementById('ticketTable').innerHTML = '<tr><td colspan="7" class="text-center p-5 text-danger">❌ ข้อมูลผิดพลาดจากเซิร์ฟเวอร์ (ไม่พบโครงสร้างข้อมูล)</td></tr>';
+                    document.getElementById('ticketTable').innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center p-4 text-danger fw-bold">❌ ไม่พบโครงสร้างข้อมูลจากเซิร์ฟเวอร์</td>
+                        </tr>`;
                     return;
                 }
+
                 allTickets = data.allTickets;
                 document.getElementById('total-jobs').innerText = data.total || 0;
                 document.getElementById('pending-jobs').innerText = data.pending || 0;
@@ -248,61 +718,177 @@
             }
 
             const filterValue = document.getElementById('statusFilter') ? document.getElementById('statusFilter').value : 'all';
+            const searchQuery = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').toLowerCase().trim();
+
             let ticketsToShow = allTickets;
+
+            // ตัวกรองตามสถานะ
             if (filterValue !== 'all') {
-                ticketsToShow = allTickets.filter(t => {
-                    const s = t.status || '';
-                    if (filterValue === 'pending') return s === "Pending" || s === "รอดำเนินการ";
-                    if (filterValue === 'completed') return s.includes('สมบูรณ์') || s.includes('เสร็จ');
-                    if (filterValue === 'processing') return !s.includes('สมบูรณ์') && !s.includes('เสร็จ') && s !== "Pending" && s !== "รอดำเนินการ";
+                ticketsToShow = ticketsToShow.filter(t => {
+                    const s = (t.status || '').toLowerCase();
+                    if (filterValue === 'pending') {
+                        return s.includes('pending') || s.includes('รอดำเนินการ') || s.includes('รอรับแจ้ง');
+                    }
+                    if (filterValue === 'completed') {
+                        return s.includes('สมบูรณ์') || s.includes('เสร็จ') || s.includes('completed');
+                    }
+                    if (filterValue === 'processing') {
+                        return !s.includes('สมบูรณ์') && !s.includes('เสร็จ') && !s.includes('completed') &&
+                               !s.includes('pending') && !s.includes('รอดำเนินการ') &&
+                               !s.includes('ตีกลับ') && !s.includes('ยกเลิก') && !s.includes('ปฏิเสธ');
+                    }
+                    if (filterValue === 'rejected') {
+                        return s.includes('ตีกลับ') || s.includes('ยกเลิก') || s.includes('ปฏิเสธ') || s.includes('rejected');
+                    }
                     return true;
                 });
             }
 
+            // ตัวกรองตามคำค้นหา
+            if (searchQuery !== '') {
+                ticketsToShow = ticketsToShow.filter(t => {
+                    const ticketId = (t.ticket || '').toLowerCase();
+                    const reqName = (t.reqName || '').toLowerCase();
+                    const target = (t.target || '').toLowerCase();
+                    const problem = (t.problem || '').toLowerCase();
+                    const dept = (t.assignDept || '').toLowerCase();
+                    return ticketId.includes(searchQuery) || 
+                           reqName.includes(searchQuery) || 
+                           target.includes(searchQuery) || 
+                           problem.includes(searchQuery) ||
+                           dept.includes(searchQuery);
+                });
+            }
+
+            document.getElementById('filteredCount').innerText = ticketsToShow.length;
+
             const tbody = document.getElementById('ticketTable');
             if (ticketsToShow.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted">📭 ไม่พบข้อมูลที่ตรงกับตัวกรอง</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center p-5 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                            <span class="fw-bold">ไม่พบรายการใบงานที่ตรงกับเงื่อนไขการค้นหา</span>
+                        </td>
+                    </tr>`;
                 return;
             }
 
             let htmlBuffer = "";
             ticketsToShow.forEach((t) => {
                 try {
-                    let statusClass = (t.status||"").includes('เสร็จ') ? 'bg-success' : ((t.status||"").includes('ระหว่าง') ? 'bg-warning text-dark' : ((t.status||"").includes('อนุมัติ') ? 'bg-info text-white' : 'bg-danger text-white'));
-                    
+                    const s = t.status || '';
+                    let statusBadgeClass = 'bg-status-pending';
+                    if (s.includes('เสร็จ') || s.includes('สมบูรณ์')) statusBadgeClass = 'bg-status-done';
+                    else if (s.includes('อนุมัติ')) statusBadgeClass = 'bg-status-approve';
+                    else if (s.includes('ส่งมอบ') || s.includes('รับมอบ')) statusBadgeClass = 'bg-status-handover';
+                    else if (s.includes('ระหว่าง') || s.includes('ดำเนินการ')) statusBadgeClass = 'bg-status-working';
+                    else if (s.includes('ตีกลับ') || s.includes('ยกเลิก') || s.includes('ปฏิเสธ')) statusBadgeClass = 'bg-status-cancel';
+
+                    // Main Row (Adaptive: Table row on Desktop / Card on Mobile)
                     const mainRow = `
-                        <tr class="expandable-row" onclick="toggleRow('${t.ticket}')">
+                        <tr class="expandable-row" id="row-${t.ticket}" onclick="toggleRow('${t.ticket}')">
                             <td>
-                                <span class="fw-bold text-primary">${t.ticket || '-'}</span>
-                                ${t.refTicketId ? `<br><span class="badge bg-danger" style="font-size:0.6rem;">ตีกลับจาก: ${t.refTicketId}</span>` : ''}
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="fw-bold text-dark font-prompt fs-6">${t.ticket || '-'}</span>
+                                        ${t.refTicketId ? `<br><span class="badge bg-danger" style="font-size:0.65rem;">ตีกลับจาก: ${t.refTicketId}</span>` : ''}
+                                    </div>
+                                    <div class="d-lg-none">
+                                        <span class="badge-status ${statusBadgeClass}">${t.status || '-'}</span>
+                                    </div>
+                                </div>
                             </td>
-                            <td><div>${t.reqName || '-'}</div><small class="text-muted">${(t.ticket||'').split(' ')[0]} | ${t.date || '-'}</small></td>
-                            <td>${t.target || '-'}</td>
-                            <td class="small text-truncate" style="max-width: 200px;">${t.problem || '-'}</td>
-                            <td><div class="progress" style="height: 8px;"><div class="progress-bar" style="width: ${t.progress || 0}%"></div></div><small>${t.progress || 0}%</small></td>
-                            <td><span class="badge ${statusClass} w-100">${t.status || '-'}</span></td>
-                            <td class="text-center text-primary fw-bold small"><i class="bi bi-pencil-square"></i> แก้ไข</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-circle me-2 text-secondary d-none d-lg-inline"></i>
+                                    <div>
+                                        <div class="fw-semibold">${t.reqName || '-'}</div>
+                                        <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>${t.date || '-'}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span class="d-lg-none fw-bold text-muted small">สถานที่: </span>
+                                    <span class="fw-medium text-dark">${t.target || '-'}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small text-truncate" style="max-width: 250px;" title="${t.problem || '-'}">
+                                    <span class="d-lg-none fw-bold text-muted">ปัญหา: </span>
+                                    ${t.problem || '-'}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress-neo flex-grow-1">
+                                        <div class="progress-bar" role="progressbar" style="width: ${t.progress || 0}%"></div>
+                                    </div>
+                                    <small class="fw-bold">${t.progress || 0}%</small>
+                                </div>
+                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <span class="badge-status ${statusBadgeClass} w-100">${t.status || '-'}</span>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn-neo btn-sm py-1 px-2 w-100" style="font-size:0.8rem;">
+                                    <i class="bi bi-chevron-right chevron-icon" id="chevron-${t.ticket}"></i>
+                                    <span class="d-lg-none ms-1">รายละเอียด</span>
+                                </button>
+                            </td>
                         </tr>`;
 
+                    // Detail Row (Expandable Content with SOP management & PDF)
                     const detailRow = `
                         <tr id="detail-${t.ticket}" class="detail-row">
                             <td colspan="7">
-                                <div class="detail-container bg-light shadow-inner">
-                                    <div class="row g-4">
-                                        <div class="col-md-5 text-center">
-                                            <h6 class="fw-bold text-dark border-bottom pb-2">📸 รูปภาพตรวจสอบ</h6>
+                                <div class="detail-container">
+                                    <div class="row g-3 g-md-4">
+                                        <!-- Photo Preview Section -->
+                                        <div class="col-12 col-md-5 text-center">
+                                            <h6 class="fw-bold text-dark border-bottom border-2 border-dark pb-2 mb-3 text-start font-prompt">
+                                                <i class="bi bi-camera-fill me-1"></i> ภาพถ่ายการตรวจสอบ
+                                            </h6>
                                             <div class="d-flex flex-column gap-3 align-items-center">
-                                                ${t.imageUrl ? `<img src="${t.imageUrl}" class="img-fluid job-image-preview">` : '<div class="p-4 border bg-white small">ไม่มีรูปแจ้งซ่อม</div>'}
-                                                ${t.completionImageUrl ? `<img src="${t.completionImageUrl}" class="img-fluid job-image-preview border-success">` : ''}
+                                                ${t.imageUrl ? `
+                                                    <div class="w-100 text-start">
+                                                        <small class="text-muted fw-bold mb-1 d-block">📸 รูปก่อนซ่อม (แจ้งซ่อม):</small>
+                                                        <img src="${t.imageUrl}" class="img-fluid job-image-preview" 
+                                                             onclick="openImageModal('${t.imageUrl}', 'รูปแจ้งซ่อม: ${t.ticket}')" 
+                                                             title="คลิกเพื่อดูรูปขยาย">
+                                                    </div>` : `
+                                                    <div class="p-3 border border-2 border-secondary bg-white rounded-3 small text-muted w-100">
+                                                        <i class="bi bi-image text-secondary fs-3 d-block mb-1"></i> ไม่มีรูปภาพก่อนซ่อม
+                                                    </div>`}
+
+                                                ${t.completionImageUrl ? `
+                                                    <div class="w-100 text-start">
+                                                        <small class="text-success fw-bold mb-1 d-block">✅ รูปหลังซ่อมเสร็จ:</small>
+                                                        <img src="${t.completionImageUrl}" class="img-fluid job-image-preview border-success" 
+                                                             onclick="openImageModal('${t.completionImageUrl}', 'รูปซ่อมเสร็จ: ${t.ticket}')" 
+                                                             title="คลิกเพื่อดูรูปขยาย">
+                                                    </div>` : ''}
                                             </div>
                                         </div>
-                                        <div class="col-md-7">
-                                            <div class="card border-0 shadow-sm h-100">
-                                                <div class="card-header bg-white fw-bold text-primary">⚙️ การจัดการงาน: ${t.ticket}</div>
-                                                <div class="card-body">
+
+                                        <!-- SOP Form Action Section -->
+                                        <div class="col-12 col-md-7">
+                                            <div class="card border border-2 border-dark rounded-3 h-100" style="box-shadow: 3px 3px 0px var(--neo-dark);">
+                                                <div class="card-header bg-white border-bottom border-2 border-dark py-2 d-flex justify-content-between align-items-center">
+                                                    <span class="fw-bold text-dark font-prompt">
+                                                        <i class="bi bi-sliders me-1 text-primary"></i> การจัดการใบงาน: ${t.ticket}
+                                                    </span>
+                                                    <span class="badge bg-dark text-white">${t.status}</span>
+                                                </div>
+                                                <div class="card-body p-3">
                                                     <div id="form-${t.ticket}">${renderSOPForm(t)}</div>
-                                                    <hr class="my-3">
-                                                    <button class="btn btn-outline-danger w-100 fw-bold" onclick="exportToPDF('${t.ticket}')">
+                                                    
+                                                    <hr class="my-3 border-dark">
+                                                    
+                                                    <button class="btn btn-outline-danger w-100 fw-bold py-2 border-2 border-danger rounded-3" 
+                                                            onclick="exportToPDF('${t.ticket}')"
+                                                            style="box-shadow: 2px 2px 0px #dc3545;">
                                                         <i class="bi bi-file-pdf-fill me-1"></i> ส่งออกใบงานเป็น PDF (A4 Google Doc)
                                                     </button>
                                                 </div>
@@ -312,99 +898,196 @@
                                 </div>
                             </td>
                         </tr>`;
+
                     htmlBuffer += mainRow + detailRow;
-                } catch (e) { console.error("Error rendering ticket:", t, e); }
+                } catch (e) { 
+                    console.error("Error rendering ticket:", t, e); 
+                }
             });
+
             tbody.innerHTML = htmlBuffer;
         }
 
+        // 6. เรนเดอร์ฟอร์ม SOP ตามสถานะงาน
         function renderSOPForm(t) {
-            const isPlan = (t.status === "Pending" || t.status === "รอดำเนินการ");
-            const isWork = (t.status === "อยู่ระหว่างการดำเนินการ");
+            const isPlan = (t.status === "Pending" || t.status === "รอดำเนินการ" || t.status === "รอรับแจ้ง");
+            const isWork = (t.status === "อยู่ระหว่างการดำเนินการ" || t.status === "อยู่ระหว่างดำเนินการ");
 
             if (isPlan) {
                 return `
                     <div class="row g-2">
-                        <div class="col-12 mb-2"><label class="form-label small fw-bold">⚠️ สาเหตุที่พบ</label><textarea id="cause-${t.ticket}" class="form-control form-control-sm" rows="2"></textarea></div>
-                        <div class="col-md-6 mb-2"><label class="form-label small fw-bold">🛠️ วิธีแก้ไข</label><select id="method-${t.ticket}" class="form-select form-select-sm" onchange="const v=this.value; document.getElementById('selfBox-${t.ticket}').style.display=(v==='ซ่อมเอง')?'block':'none';"><option value="">-- เลือก --</option><option value="ส่งซ่อมข้างนอก">ส่งซ่อมข้างนอก</option><option value="เปลี่ยนใหม่">เปลี่ยนใหม่</option><option value="เรียกผู้รับเหมา">เรียกผู้รับเหมา</option><option value="ซ่อมเอง">ซ่อมเอง</option></select></div>
-                        <div class="col-md-6 mb-2" id="selfBox-${t.ticket}" style="display:none;"><label class="form-label small fw-bold text-danger">📍 รายละเอียดการซ่อม</label><textarea id="details-${t.ticket}" class="form-control form-control-sm" rows="1"></textarea></div>
-                        <div class="col-md-6 mb-2"><label class="form-label small fw-bold">👨✈️ แผนกผู้รับผิดชอบ</label><select id="assign-${t.ticket}" class="form-select form-select-sm"><option value="">-- เลือก --</option><option value="แผนกห้องเครื่อง">แผนกห้องเครื่อง</option><option value="แผนกซ่อมบำรุง">แผนกซ่อมบำรุง</option></select></div>
-                        <div class="col-md-6 mb-2"><label class="form-label small fw-bold">📅 กำหนดเสร็จ</label><input type="date" id="date-${t.ticket}" class="form-control form-control-sm"></div>
-                        <div class="col-12 mt-3"><button class="btn btn-primary w-100 fw-bold" id="btn-${t.ticket}" onclick="submitStage('${t.ticket}', 1)">📌 รับแจ้งและส่งรออนุมัติ</button></div>
+                        <div class="col-12 mb-2">
+                            <label class="form-label small fw-bold">⚠️ สาเหตุที่พบ / การประเมินปัญหา</label>
+                            <textarea id="cause-${t.ticket}" class="form-control form-control-sm form-control-neo" rows="2" placeholder="ระบุสาเหตุที่พบหลังตรวจสอบเบื้องต้น..."></textarea>
+                        </div>
+                        <div class="col-12 col-sm-6 mb-2">
+                            <label class="form-label small fw-bold">🛠️ วิธีแก้ไข</label>
+                            <select id="method-${t.ticket}" class="form-select form-select-sm form-select-neo" onchange="toggleSelfRepair('${t.ticket}', this.value)">
+                                <option value="">-- เลือกวิธีแก้ไข --</option>
+                                <option value="ซ่อมเอง">ซ่อมเอง</option>
+                                <option value="เปลี่ยนใหม่">เปลี่ยนใหม่</option>
+                                <option value="ส่งซ่อมข้างนอก">ส่งซ่อมข้างนอก</option>
+                                <option value="เรียกผู้รับเหมา">เรียกผู้รับเหมา</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6 mb-2" id="selfBox-${t.ticket}" style="display:none;">
+                            <label class="form-label small fw-bold text-danger">📍 รายละเอียดการซ่อมเอง</label>
+                            <textarea id="details-${t.ticket}" class="form-control form-control-sm form-control-neo" rows="1" placeholder="เช่น เปลี่ยนซีลยาง, ขันน็อต"></textarea>
+                        </div>
+                        <div class="col-12 col-sm-6 mb-2">
+                            <label class="form-label small fw-bold">👨‍✈️ แผนกผู้รับผิดชอบ</label>
+                            <select id="assign-${t.ticket}" class="form-select form-select-sm form-select-neo">
+                                <option value="">-- เลือกแผนกช่าง --</option>
+                                <option value="แผนกห้องเครื่อง">แผนกห้องเครื่อง</option>
+                                <option value="แผนกซ่อมบำรุง">แผนกซ่อมบำรุง</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6 mb-2">
+                            <label class="form-label small fw-bold">📅 กำหนดแล้วเสร็จ</label>
+                            <input type="date" id="date-${t.ticket}" class="form-control form-control-sm form-control-neo">
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button class="btn btn-primary w-100 fw-bold py-2 border-2 border-dark rounded-3" 
+                                    id="btn-${t.ticket}" 
+                                    style="box-shadow: 2px 2px 0px var(--neo-dark);"
+                                    onclick="submitStage('${t.ticket}', 1)">
+                                📌 รับแจ้งและส่งขออนุมัติการซ่อม
+                            </button>
+                        </div>
                     </div>`;
             } else if (isWork) {
                 return `
-                    <div class="alert alert-info py-2 small mb-3">อยู่ระหว่างดำเนินการโดย ${t.assignDept}
-                        <hr class="my-1">
-                        <b>⚠️ สาเหตุ:</b> ${t.cause || '-'}<br>
-                        <b>🛠️ วิธีแก้:</b> ${t.repairMethod || '-'} ${t.repairDetails ? `(${t.repairDetails})` : ''}<br>
-                        <b>📅 กำหนดเสร็จ:</b> ${t.expectedDate || '-'}
+                    <div class="alert alert-info py-2 small mb-3 border border-2 border-dark rounded-3" style="box-shadow: 2px 2px 0px var(--neo-dark);">
+                        <div class="fw-bold"><i class="bi bi-info-circle-fill me-1"></i> อยู่ระหว่างดำเนินการโดย: ${t.assignDept || '-'}</div>
+                        <hr class="my-1 border-dark">
+                        <div><b>⚠️ สาเหตุ:</b> ${t.cause || '-'}</div>
+                        <div><b>🛠️ วิธีแก้:</b> ${t.repairMethod || '-'} ${t.repairDetails ? `(${t.repairDetails})` : ''}</div>
+                        <div><b>📅 กำหนดเสร็จ:</b> ${t.expectedDate || '-'}</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">📝 หมายเหตุการซ่อม (Note)</label>
-                        <textarea id="note-${t.ticket}" class="form-control mb-3" rows="2"></textarea>
-                        <label class="form-label small fw-bold text-primary">📸 แนบรูปภาพซ่อมเสร็จ</label>
-                        <input type="file" id="file-${t.ticket}" class="form-control form-control-sm" accept="image/*">
+                        <label class="form-label small fw-bold">📝 บันทึกผลการซ่อม / หมายเหตุ (Note)</label>
+                        <textarea id="note-${t.ticket}" class="form-control form-control-neo mb-3" rows="2" placeholder="ระบุการปฏิบัติงาน เช่น ได้ทำการแก้ไขและทดสอบเรียบร้อยแล้ว..."></textarea>
+                        
+                        <label class="form-label small fw-bold text-primary">📸 แนบรูปภาพหลังซ่อมเสร็จ (Completion Photo)</label>
+                        <input type="file" id="file-${t.ticket}" class="form-control form-control-sm form-control-neo" accept="image/*">
                     </div>
-                    <button class="btn btn-success w-100 fw-bold" id="btn-${t.ticket}" onclick="submitStage('${t.ticket}', 3)">
+                    <button class="btn btn-success w-100 fw-bold py-2 border-2 border-dark rounded-3" 
+                            id="btn-${t.ticket}" 
+                            style="box-shadow: 2px 2px 0px var(--neo-dark);"
+                            onclick="submitStage('${t.ticket}', 3)">
                         ✅ ปิดงานและส่งรับมอบงาน (Supervisor)
                     </button>`;
             } else {
                 let extraInfo = '';
                 if (t.repairMethod || t.cause || t.assignDept) {
-                    extraInfo = `<hr class="my-2">
-                    <div class="row text-start small">
-                        <div class="col-md-6 mb-1"><b>⚠️ สาเหตุ:</b> ${t.cause || '-'}</div>
-                        <div class="col-md-6 mb-1"><b>🛠️ วิธีแก้ไข:</b> ${t.repairMethod || '-'} ${t.repairDetails ? `(${t.repairDetails})` : ''}</div>
-                        <div class="col-md-6 mb-1"><b>👨✈️ ผู้รับผิดชอบ:</b> ${t.assignDept || '-'}</div>
-                        <div class="col-md-6 mb-1"><b>📅 กำหนดเสร็จ:</b> ${t.expectedDate || '-'}</div>
-                        ${t.note ? `<div class="col-12 mt-1"><b>📝 โน้ต/หมายเหตุ:</b> ${t.note}</div>` : ''}
-                        ${t.submitHandoverTimestamp && t.submitHandoverTimestamp !== '-' 
-                          ? `<div class="col-12 mt-1"><b>📦 ส่งมอบงานเมื่อ:</b> ${t.submitHandoverTimestamp}</div>` 
-                          : ''}
-                    </div>`;
+                    extraInfo = `
+                        <hr class="my-2 border-secondary">
+                        <div class="row text-start small g-1">
+                            <div class="col-12 col-sm-6"><b>⚠️ สาเหตุ:</b> ${t.cause || '-'}</div>
+                            <div class="col-12 col-sm-6"><b>🛠️ วิธีแก้ไข:</b> ${t.repairMethod || '-'} ${t.repairDetails ? `(${t.repairDetails})` : ''}</div>
+                            <div class="col-12 col-sm-6"><b>👨‍✈️ ผู้รับผิดชอบ:</b> ${t.assignDept || '-'}</div>
+                            <div class="col-12 col-sm-6"><b>📅 กำหนดเสร็จ:</b> ${t.expectedDate || '-'}</div>
+                            ${t.note ? `<div class="col-12 mt-1"><b>📝 หมายเหตุ:</b> ${t.note}</div>` : ''}
+                            ${t.submitHandoverTimestamp && t.submitHandoverTimestamp !== '-' 
+                              ? `<div class="col-12 mt-1"><b>📦 เวลาส่งมอบงาน:</b> ${t.submitHandoverTimestamp}</div>` 
+                              : ''}
+                            ${t.handoverName && t.handoverName !== '-' 
+                              ? `<div class="col-12"><b>🤝 ผู้รับมอบงาน:</b> ${t.handoverName}</div>` 
+                              : ''}
+                        </div>`;
                 }
-                return `<div class="alert alert-secondary py-3 text-center">
-                    <span class="fw-bold fs-6">สถานะ: ${t.status}</span><br>
-                    <small class="text-muted">อนุมัติโดย: ${t.approverName || '-'} | ผู้รับแจ้ง: ${t.receiver || '-'}</small>
-                    ${extraInfo}
-                </div>`;
+                return `
+                    <div class="alert alert-secondary py-3 text-center border border-2 border-dark rounded-3" style="box-shadow: 2px 2px 0px var(--neo-dark);">
+                        <span class="fw-bold fs-6 text-dark">สถานะปัจจุบัน: ${t.status}</span><br>
+                        <small class="text-muted">ผู้อนุมัติ: ${t.approverName || '-'} | ผู้รับแจ้ง: ${t.receiver || '-'}</small>
+                        ${extraInfo}
+                    </div>`;
             }
         }
 
-        function toggleRow(id) {
-            const row = document.getElementById(`detail-${id}`);
-            const isVisible = row.style.display === 'table-row';
-            document.querySelectorAll('.detail-row').forEach(r => r.style.display = 'none');
-            row.style.display = isVisible ? 'none' : 'table-row';
+        function toggleSelfRepair(ticketId, value) {
+            const selfBox = document.getElementById(`selfBox-${ticketId}`);
+            if (selfBox) {
+                selfBox.style.display = (value === 'ซ่อมเอง') ? 'block' : 'none';
+            }
         }
 
+        // 7. สลับเปิด/ปิดแถวรายละเอียด
+        function toggleRow(id) {
+            const row = document.getElementById(`detail-${id}`);
+            const mainRow = document.getElementById(`row-${id}`);
+            const chevron = document.getElementById(`chevron-${id}`);
+            
+            if (!row) return;
+
+            const isVisible = row.style.display === 'table-row';
+            
+            // ปิดแถวอื่นๆ ก่อน
+            document.querySelectorAll('.detail-row').forEach(r => r.style.display = 'none');
+            document.querySelectorAll('.expandable-row').forEach(r => r.classList.remove('row-expanded'));
+
+            if (!isVisible) {
+                row.style.display = 'table-row';
+                if (mainRow) mainRow.classList.add('row-expanded');
+            }
+        }
+
+        // 8. บันทึกข้อมูลตาม Stage SOP
         function submitStage(ticketId, stage) {
             const btn = document.getElementById(`btn-${ticketId}`);
             const userLogin = localStorage.getItem('userLogin');
             const userName = localStorage.getItem('userName');
+            
             btn.disabled = true;
-            btn.innerHTML = '⏳ กำลังบันทึก...';
+            btn.innerHTML = '⏳ กำลังประมวลผลและบันทึก...';
 
             const payload = {
-                id: ticketId, auth: userLogin,
+                id: ticketId, 
+                auth: userLogin,
                 status: stage === 1 ? "รออนุมัติการซ่อม" : "รอรับมอบงาน",
                 progress: stage === 1 ? 30 : 80,
-                cause: stage === 1 ? document.getElementById(`cause-${ticketId}`).value : "",
-                method: stage === 1 ? document.getElementById(`method-${ticketId}`).value : "",
-                details: stage === 1 ? document.getElementById(`details-${ticketId}`).value : "",
-                assign: stage === 1 ? document.getElementById(`assign-${ticketId}`).value : "",
-                date: stage === 1 ? document.getElementById(`date-${ticketId}`).value : "",
-                note: stage === 3 ? document.getElementById(`note-${ticketId}`).value : "",
+                cause: stage === 1 ? (document.getElementById(`cause-${ticketId}`) ? document.getElementById(`cause-${ticketId}`).value : "") : "",
+                method: stage === 1 ? (document.getElementById(`method-${ticketId}`) ? document.getElementById(`method-${ticketId}`).value : "") : "",
+                details: stage === 1 ? (document.getElementById(`details-${ticketId}`) ? document.getElementById(`details-${ticketId}`).value : "") : "",
+                assign: stage === 1 ? (document.getElementById(`assign-${ticketId}`) ? document.getElementById(`assign-${ticketId}`).value : "") : "",
+                date: stage === 1 ? (document.getElementById(`date-${ticketId}`) ? document.getElementById(`date-${ticketId}`).value : "") : "",
+                note: stage === 3 ? (document.getElementById(`note-${ticketId}`) ? document.getElementById(`note-${ticketId}`).value : "") : "",
                 receiver: stage === 1 ? userName : ""
             };
 
+            if (stage === 1 && (!payload.cause || !payload.method || !payload.assign)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
+                    text: 'กรุณาระบุสาเหตุ วิธีแก้ไข และเลือกแผนกผู้รับผิดชอบก่อนบันทึก',
+                    confirmButtonColor: '#191A23'
+                });
+                btn.disabled = false;
+                btn.innerHTML = '📌 รับแจ้งและส่งขออนุมัติการซ่อม';
+                return;
+            }
+
             const send = (file) => {
-                // updateTicketStatus_Full จะตรวจจับ newStatus === "รอรับมอบงาน"
-                // และบันทึก Submit_Handover_Timestamp ลงคอลัมน์ AG โดยอัตโนมัติ
                 google.script.run
-                    .withSuccessHandler(res => { alert(res.message); loadData(); })
-                    .withFailureHandler(err => { alert("❌ เกิดข้อผิดพลาด: " + err.message); btn.disabled = false; btn.innerHTML = '✅ ปิดงานและส่งรับมอบงาน (Supervisor)'; })
+                    .withSuccessHandler(res => { 
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'บันทึกสำเร็จ!',
+                            text: res.message || 'ข้อมูลได้รับการอัปเดตเรียบร้อยแล้ว',
+                            confirmButtonColor: '#191A23'
+                        });
+                        loadData(); 
+                    })
+                    .withFailureHandler(err => { 
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'เกิดข้อผิดพลาด',
+                            text: err.message || err,
+                            confirmButtonColor: '#191A23'
+                        });
+                        btn.disabled = false; 
+                        btn.innerHTML = stage === 1 ? '📌 รับแจ้งและส่งขออนุมัติการซ่อม' : '✅ ปิดงานและส่งรับมอบงาน (Supervisor)'; 
+                    })
                     .updateTicketStatus_Full(
                         payload.id,
                         payload.status,
@@ -426,7 +1109,8 @@
             };
 
             if (stage === 3) {
-                const f = document.getElementById(`file-${ticketId}`).files[0];
+                const fileInput = document.getElementById(`file-${ticketId}`);
+                const f = fileInput && fileInput.files ? fileInput.files[0] : null;
                 if (f) {
                     const r = new FileReader();
                     r.onload = e => send({ base64: e.target.result.split(',')[1], mimeType: f.type, fileName: "DONE_" + ticketId });
@@ -439,55 +1123,79 @@
             }
         }
 
+        // 9. ส่งออกไฟล์ PDF ใบงาน
         function exportToPDF(ticketId) {
             const userLogin = localStorage.getItem('userLogin');
-            if(!confirm(`ต้องการส่งออกเอกสาร PDF ของใบงาน ${ticketId} ใช่หรือไม่?`)) return;
             
-            // สร้าง Modal อินสแตนซ์และแสดงผล
-            const progressModal = new bootstrap.Modal(document.getElementById('pdfProgressModal'));
-            const statusLabel = document.getElementById('pdfProgressStatus');
-            const progressBar = document.getElementById('pdfProgressBar');
-            
-            statusLabel.innerText = "กำลังเริ่มเชื่อมต่อหลังบ้าน... (5%)";
-            progressBar.style.width = "5%";
-            progressBar.innerText = "5%";
-            progressModal.show();
-            
-            // เริ่มต้นระบบ Polling ดึงสถานะเปอร์เซ็นต์ทุกๆ 1 วินาที
-            let pollInterval = setInterval(() => {
-                google.script.run.withSuccessHandler(status => {
-                    if (status) {
-                        statusLabel.innerText = status;
-                        let match = status.match(/\((\d+)%\)/);
-                        if (match) {
-                            let pct = match[1];
-                            progressBar.style.width = pct + "%";
-                            progressBar.innerText = pct + "%";
-                        }
-                    }
-                }).getPDFProgress(ticketId);
-            }, 1000);
-            
-            google.script.run.withSuccessHandler(res => {
-                clearInterval(pollInterval);
+            Swal.fire({
+                title: 'ส่งออกใบงาน PDF',
+                text: `ต้องการสร้างเอกสาร PDF (A4) สำหรับใบงาน ${ticketId} ใช่หรือไม่?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'ใช่, สร้าง PDF',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                const progressModal = new bootstrap.Modal(document.getElementById('pdfProgressModal'));
+                const statusLabel = document.getElementById('pdfProgressStatus');
+                const progressBar = document.getElementById('pdfProgressBar');
                 
-                // ค่อยๆ ปิด modal หลังจากดาวน์โหลดเสร็จเพื่อความสมูท
-                setTimeout(() => {
-                    progressModal.hide();
-                    if (res.success) {
-                        window.open(res.pdfUrl, '_blank');
-                    } else {
-                        alert(res.message);
-                    }
-                }, 500);
-            }).withFailureHandler(err => {
-                clearInterval(pollInterval);
-                progressModal.hide();
-                alert("เกิดข้อผิดพลาดในการสร้างไฟล์: " + err.message);
-            }).generatePDF(ticketId, userLogin);
+                statusLabel.innerText = "กำลังเริ่มเชื่อมต่อหลังบ้าน... (5%)";
+                progressBar.style.width = "5%";
+                progressBar.innerText = "5%";
+                progressModal.show();
+                
+                let pollInterval = setInterval(() => {
+                    google.script.run.withSuccessHandler(status => {
+                        if (status) {
+                            statusLabel.innerText = status;
+                            let match = status.match(/\((\d+)%\)/);
+                            if (match) {
+                                let pct = match[1];
+                                progressBar.style.width = pct + "%";
+                                progressBar.innerText = pct + "%";
+                            }
+                        }
+                    }).getPDFProgress(ticketId);
+                }, 1000);
+                
+                google.script.run
+                    .withSuccessHandler(res => {
+                        clearInterval(pollInterval);
+                        setTimeout(() => {
+                            progressModal.hide();
+                            if (res.success) {
+                                window.open(res.pdfUrl, '_blank');
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: res.message, confirmButtonColor: '#191A23' });
+                            }
+                        }, 500);
+                    })
+                    .withFailureHandler(err => {
+                        clearInterval(pollInterval);
+                        progressModal.hide();
+                        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาดในการสร้างไฟล์', text: err.message || err, confirmButtonColor: '#191A23' });
+                    })
+                    .generatePDF(ticketId, userLogin);
+            });
         }
 
-        window.onload = function() { updateTopNavbar(); loadData(); };
+        // 10. ดูภาพขยาย (Modal Preview)
+        function openImageModal(url, title) {
+            document.getElementById('imageModalImg').src = url;
+            document.getElementById('imageModalTitle').innerHTML = `<i class="bi bi-image"></i> ${title}`;
+            const modal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+            modal.show();
+        }
+
+        // เริ่มต้นการทำงานเมื่อเปิดหน้าเว็บ
+        window.onload = function() { 
+            updateTopNavbar(); 
+            loadData(); 
+        };
     </script>
 </body>
 </html>
