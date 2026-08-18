@@ -1,0 +1,321 @@
+<!-- หน้าตั้งค่าสิทธิ์การเข้าถึงโมดูล (Role & Permission Config): เฉพาะ Level 5 (Admin) เท่านั้น -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการสิทธิ์การเข้าถึงโมดูล (Role Permissions)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neo-dark: #191A23;
+            --neo-light: #F3F3F3;
+            --neo-green: #B9FF66;
+            --neo-blue: #00D1FF;
+            --neo-yellow: #FFD166;
+            --neo-white: #FFFFFF;
+            --border-width: 2px;
+            --shadow-depth: 4px;
+        }
+
+        body { 
+            background-color: var(--neo-white); 
+            font-family: 'Sarabun', sans-serif; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            color: var(--neo-dark);
+        }
+
+        .card-neo {
+            background-color: var(--neo-white);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 16px;
+            box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark);
+        }
+
+        .btn-neo {
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 10px;
+            font-weight: 700;
+            padding: 8px 18px;
+            box-shadow: 3px 3px 0px var(--neo-dark);
+            transition: all 0.15s ease;
+        }
+
+        .btn-neo:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px var(--neo-dark);
+            background-color: var(--neo-green);
+        }
+
+        .btn-neo-green {
+            background-color: var(--neo-green);
+            color: var(--neo-dark);
+        }
+
+        .btn-neo-green:hover {
+            background-color: #a3f542;
+        }
+
+        /* Toggle Switches */
+        .form-check-input:checked {
+            background-color: var(--neo-green);
+            border-color: var(--neo-dark);
+        }
+
+        .form-check-input {
+            width: 2.6em;
+            height: 1.4em;
+            border: var(--border-width) solid var(--neo-dark);
+            cursor: pointer;
+        }
+
+        .table-responsive {
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 12px;
+            box-shadow: 3px 3px 0px var(--neo-dark);
+            overflow: hidden;
+        }
+
+        .table th {
+            background-color: var(--neo-dark) !important;
+            color: var(--neo-white) !important;
+            font-family: 'Prompt', sans-serif;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .badge-level {
+            font-weight: 700;
+            border: 1.5px solid var(--neo-dark);
+            border-radius: 12px;
+            padding: 4px 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="border-bottom border-3 border-dark mb-4" style="background-color: var(--neo-green); padding: 15px 0; box-shadow: 0 4px 0 var(--neo-dark); position: relative; z-index: 10;">
+        <div class="container-fluid px-md-4 d-flex justify-content-between align-items-center">
+            <div class="fw-bold fs-4 text-dark" style="cursor:pointer;" onclick="window.location.href='Home.html'">
+                <i class="bi bi-shield-lock-fill me-2 fs-2"></i> <span class="d-none d-sm-inline">ตั้งค่าสิทธิ์การเข้าถึงโมดูล (Role Permissions)</span><span class="d-inline d-sm-none">Role Config</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-white text-dark border border-2 border-dark rounded px-3 py-2 fw-bold d-none d-md-inline" style="box-shadow: 2px 2px 0 var(--neo-dark);">
+                    <i class="bi bi-person-fill-gear me-1"></i> Admin Level 5 Only
+                </span>
+                <a href="Home.html" class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);"><i class="bi bi-house-door me-1"></i> Home</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid px-md-4 flex-grow-1 pb-5">
+        
+        <!-- Action Bar -->
+        <div class="card-neo p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div>
+                <h4 class="fw-bold mb-1"><i class="bi bi-sliders me-2"></i>กำหนดสิทธิ์การมองเห็นเมนูตาม Level (Access Matrix)</h4>
+                <div class="text-muted small">สิทธิ์ที่เปิดในหน้านี้จะไปควบคุมการแสดงผลของปุ่มกดเมนูต่างๆ ในหน้าแรก (Portal Home) โดยทันที</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn-neo" onclick="resetToDefault()"><i class="bi bi-arrow-counterclockwise me-1"></i> คืนค่าเริ่มต้น</button>
+                <button type="button" class="btn-neo btn-neo-green" id="btnSavePermissions" onclick="savePermissions()"><i class="bi bi-save-fill me-1"></i> บันทึกการตั้งค่าสิทธิ์</button>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-responsive bg-white">
+            <table class="table table-hover table-bordered mb-0" id="matrixTable">
+                <thead>
+                    <tr>
+                        <th style="min-width: 180px;" class="text-start ps-3">User Level</th>
+                        <th title="แจ้งซ่อม">📋 แจ้งซ่อม<br><small class="fw-normal">(index)</small></th>
+                        <th title="Monitor">📊 Monitor<br><small class="fw-normal">(monitor)</small></th>
+                        <th title="คลังอะไหล่">📦 คลังอะไหล่<br><small class="fw-normal">(inventory)</small></th>
+                        <th title="แผนงาน PM">📅 แผน PM<br><small class="fw-normal">(pm)</small></th>
+                        <th title="งานซ่อมบำรุง">🔧 ซ่อมบำรุง<br><small class="fw-normal">(maint)</small></th>
+                        <th title="งานห้องเครื่อง">⚡ ห้องเครื่อง<br><small class="fw-normal">(engine)</small></th>
+                        <th title="Dashboard">📈 Dashboard<br><small class="fw-normal">(dashboard)</small></th>
+                        <th title="รับมอบงาน">🤝 รับมอบงาน<br><small class="fw-normal">(handover)</small></th>
+                        <th title="ทวนสอบงาน">🔍 ทวนสอบ<br><small class="fw-normal">(verify)</small></th>
+                        <th title="อนุมัติงาน">✅ อนุมัติงาน<br><small class="fw-normal">(approve)</small></th>
+                        <th title="ลายเซ็น">✍️ ลายเซ็น<br><small class="fw-normal">(signatures)</small></th>
+                        <th title="ตั้งค่าสิทธิ์">🔐 ตั้งค่าสิทธิ์<br><small class="fw-normal">(role_config)</small></th>
+                    </tr>
+                </thead>
+                <tbody id="matrixTbody">
+                    <tr>
+                        <td colspan="13" class="py-5 text-center">
+                            <div class="spinner-border text-dark"></div>
+                            <div class="mt-2 fw-bold">กำลังโหลดข้อมูลสิทธิ์จากระบบ...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const userRole = localStorage.getItem('userRole') || '';
+        const userLevel = parseInt(localStorage.getItem('userLevel') || 0);
+        const userLogin = localStorage.getItem('userLogin') || '';
+
+        // เฉพาะ Level 5 เท่านั้นที่ใช้งานหน้านี้ได้
+        if (!userRole || userLevel !== 5) {
+            alert('❌ เฉพาะผู้จัดการและผู้บริหาร (Level 5) เท่านั้นที่สามารถจัดการตั้งค่าสิทธิ์ระบบได้');
+            window.location.href = "Home.html";
+        }
+
+        const levelsDef = [
+            { level: 1, name: "Level 1: พนักงานทั่วไป (Staff)", bg: "#e9ecef" },
+            { level: 2, name: "Level 2: Supervisor", bg: "#e2e3e5" },
+            { level: 3, name: "Level 3: Engineer", bg: "#d1e7dd" },
+            { level: 4, name: "Level 4: QC", bg: "#cff4fc" },
+            { level: 5, name: "Level 5: Admin / Management", bg: "#B9FF66" },
+            { level: 6, name: "Level 6: Stock Only", bg: "#f8d7da" },
+            { level: 7, name: "Level 7: ช่างซ่อมบำรุง (Maint)", bg: "#fff3cd" },
+            { level: 8, name: "Level 8: ช่างห้องเครื่อง (Engine)", bg: "#ffe5d0" }
+        ];
+
+        const modulesDef = [
+            { key: "index", label: "แจ้งซ่อม" },
+            { key: "monitor", label: "Monitor" },
+            { key: "inventory", label: "คลังอะไหล่" },
+            { key: "pm", label: "แผน PM" },
+            { key: "maintenance", label: "งานซ่อมบำรุง" },
+            { key: "engine_room", label: "งานห้องเครื่อง" },
+            { key: "dashboard", label: "Dashboard" },
+            { key: "handover", label: "รับมอบงาน" },
+            { key: "verify", label: "ทวนสอบงาน" },
+            { key: "approve", label: "อนุมัติงาน" },
+            { key: "signatures", label: "จัดการลายเซ็น" },
+            { key: "role_config", label: "ตั้งค่าสิทธิ์" }
+        ];
+
+        // ค่า Default Matrix เริ่มต้น
+        const defaultPermissions = {
+            1: { index: true, monitor: true, inventory: true, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: false, verify: false, approve: false, signatures: false, role_config: false },
+            2: { index: true, monitor: true, inventory: false, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: true, verify: false, approve: false, signatures: false, role_config: false },
+            3: { index: true, monitor: true, inventory: false, pm: true, maintenance: false, engine_room: false, dashboard: true, handover: false, verify: false, approve: false, signatures: false, role_config: false },
+            4: { index: true, monitor: true, inventory: false, pm: true, maintenance: false, engine_room: false, dashboard: false, handover: false, verify: true, approve: false, signatures: false, role_config: false },
+            5: { index: true, monitor: true, inventory: true, pm: true, maintenance: true, engine_room: true, dashboard: true, handover: true, verify: true, approve: true, signatures: true, role_config: true },
+            6: { index: true, monitor: true, inventory: true, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: false, verify: false, approve: false, signatures: false, role_config: false },
+            7: { index: true, monitor: true, inventory: true, pm: true, maintenance: true, engine_room: false, dashboard: false, handover: false, verify: false, approve: false, signatures: false, role_config: false },
+            8: { index: true, monitor: true, inventory: true, pm: true, maintenance: false, engine_room: true, dashboard: false, handover: false, verify: false, approve: false, signatures: false, role_config: false }
+        };
+
+        let currentPermissions = JSON.parse(JSON.stringify(defaultPermissions));
+
+        window.onload = function() {
+            loadPermissions();
+        };
+
+        function loadPermissions() {
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res && res.success && res.permissions) {
+                        currentPermissions = res.permissions;
+                    }
+                    renderMatrix();
+                })
+                .withFailureHandler(function(err) {
+                    alert('❌ ไม่สามารถดึงสิทธิ์จากเซิร์ฟเวอร์ได้: ' + err.message);
+                    renderMatrix();
+                })
+                .getRolePermissions();
+        }
+
+        function renderMatrix() {
+            const tbody = document.getElementById('matrixTbody');
+            let html = '';
+
+            levelsDef.forEach(lvl => {
+                const lId = lvl.level;
+                const p = currentPermissions[lId] || {};
+
+                html += `<tr>`;
+                html += `<td class="text-start ps-3 fw-bold" style="background-color: ${lvl.bg};">
+                            <span class="badge-level bg-white text-dark">${lvl.name}</span>
+                         </td>`;
+
+                modulesDef.forEach(mod => {
+                    const isChecked = p[mod.key] === true || p[mod.key] === "TRUE";
+                    html += `
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center m-0">
+                                <input class="form-check-input perm-switch" type="checkbox" 
+                                       id="perm_${lId}_${mod.key}" 
+                                       data-level="${lId}" 
+                                       data-module="${mod.key}"
+                                       ${isChecked ? 'checked' : ''}>
+                            </div>
+                        </td>
+                    `;
+                });
+
+                html += `</tr>`;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function resetToDefault() {
+            if(!confirm('ยืนยันการคืนค่าสิทธิ์ตั้งต้น (Default Matrix) สำหรับทุก Level?')) return;
+            currentPermissions = JSON.parse(JSON.stringify(defaultPermissions));
+            renderMatrix();
+        }
+
+        function savePermissions() {
+            const switches = document.querySelectorAll('.perm-switch');
+            let newPerms = {};
+
+            levelsDef.forEach(lvl => {
+                newPerms[lvl.level] = {};
+            });
+
+            switches.forEach(sw => {
+                const l = sw.getAttribute('data-level');
+                const m = sw.getAttribute('data-module');
+                newPerms[l][m] = sw.checked;
+            });
+
+            const btn = document.getElementById('btnSavePermissions');
+            const orgText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> กำลังบันทึก...';
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    btn.disabled = false;
+                    btn.innerHTML = orgText;
+                    if (res && res.success) {
+                        alert('✅ ' + res.message);
+                    } else {
+                        alert('❌ เกิดข้อผิดพลาด: ' + (res ? res.message : 'ไม่สามารถบันทึกได้'));
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    btn.disabled = false;
+                    btn.innerHTML = orgText;
+                    alert('❌ เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
+                })
+                .saveRolePermissions(newPerms, userLogin);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMMS Dashboard - Monitor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --neo-dark: #191A23;
+            --neo-light: #F3F3F3;
+            --neo-green: #B9FF66;
+            --neo-white: #FFFFFF;
+            --border-width: 2px;
+            --shadow-depth: 4px;
+        }
+
+        body { 
+            background-color: var(--neo-white); 
+            font-family: 'Sarabun', sans-serif; 
+            color: var(--neo-dark);
+        }
+
+        /* Neo-Brutalist Header */
+        .system-header { 
+            background-color: var(--neo-white); 
+            color: var(--neo-dark); 
+            padding: 15px 0; 
+            border-bottom: var(--border-width) solid var(--neo-dark); 
+            margin-bottom: 2rem;
+        }
+
+        .header-brand {
+            font-weight: 800;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .header-brand { font-size: 1.5rem; }
+        }
+
+        .header-brand i { margin-right: 10px; color: var(--neo-dark); }
+
+        /* Neo-Brutalist Buttons & Inputs */
+        .btn-neo, .form-select-neo {
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 6px 12px;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+            transition: all 0.1s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .btn-neo:hover:not(:disabled) { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); background-color: var(--neo-green); color: var(--neo-dark); }
+        .btn-neo:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: 0px 0px 0px var(--neo-dark); transform: translate(2px, 2px); }
+        
+        .btn-neo-dark { background-color: var(--neo-dark); color: var(--neo-white); }
+        .btn-neo-dark:hover:not(:disabled) { background-color: var(--neo-dark); color: var(--neo-green); }
+
+        .btn-neo-green { background-color: var(--neo-green); color: var(--neo-dark); }
+        .btn-neo-green:hover:not(:disabled) { background-color: var(--neo-green); transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); }
+
+        .form-select-neo:focus { outline: none; border-color: var(--neo-dark); box-shadow: 2px 2px 0px var(--neo-green); }
+
+        /* Stat Cards */
+        .stat-card { 
+            border-radius: 12px; 
+            border: var(--border-width) solid var(--neo-dark); 
+            box-shadow: 4px 4px 0px var(--neo-dark); 
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+        }
+        .stat-green { background-color: var(--neo-green); }
+        .stat-dark { background-color: var(--neo-dark); color: var(--neo-white); }
+        .stat-red { background-color: #ff6b6b; color: var(--neo-white); }
+        
+        /* Table Styles */
+        .table-card {
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 12px;
+            box-shadow: 4px 4px 0px var(--neo-dark);
+            background-color: var(--neo-white);
+        }
+        .table-dark {
+            background-color: var(--neo-dark);
+            color: var(--neo-white);
+            border-bottom: var(--border-width) solid var(--neo-dark);
+        }
+        .table-dark th { border-color: var(--neo-dark); font-weight: 600; }
+        .table-hover tbody tr:hover { background-color: var(--neo-light); }
+
+        /* Status Badges */
+        .badge-status { 
+            border: 1px solid var(--neo-dark); 
+            font-weight: bold; 
+            padding: 6px 10px; 
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+        .bg-success-neo { background-color: var(--neo-green) !important; color: var(--neo-dark) !important; }
+        .bg-warning-neo { background-color: #ffd700 !important; color: var(--neo-dark) !important;}
+        .bg-info-neo { background-color: #0dcaf0 !important; color: var(--neo-dark) !important;}
+        .bg-danger-neo { background-color: #dc3545 !important; color: white !important;}
+        .bg-secondary-neo { background-color: #e9ecef !important; color: var(--neo-dark) !important; }
+
+        /* Progress Bar */
+        .progress-neo {
+            height: 8px;
+            border: 1px solid var(--neo-dark);
+            border-radius: 4px;
+            background-color: var(--neo-light);
+            overflow: hidden;
+        }
+        .progress-bar-neo {
+            background-color: var(--neo-dark);
+            height: 100%;
+        }
+
+        /* Thumbnails */
+        .img-thumbnail-neo {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border: 1px solid var(--neo-dark);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .img-thumbnail-neo:hover { transform: scale(1.1); box-shadow: 2px 2px 0px var(--neo-dark); }
+
+        /* Loading Spinner */
+        #loading { display: none; }
+
+        /* Lightbox Modal */
+        #image-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(25, 26, 35, 0.9);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #image-modal.show { display: flex; opacity: 1; }
+        #modal-img {
+            max-width: 90%; max-height: 85vh;
+            border: 4px solid var(--neo-white);
+            border-radius: 8px;
+            box-shadow: 8px 8px 0px var(--neo-green);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        #image-modal.show #modal-img { transform: scale(1); }
+        .close-modal {
+            position: absolute;
+            top: 20px; right: 30px;
+            font-size: 2rem; color: var(--neo-green);
+            cursor: pointer; background: none; border: none;
+        }
+    </style>
+</head>
+<body>
+
+        <header class="system-header border-bottom border-3 border-dark mb-4" style="background-color: var(--neo-green); padding: 15px 0; box-shadow: 0 4px 0 var(--neo-dark); position: relative; z-index: 10;">
+        <div class="container-fluid px-md-4 d-flex justify-content-between align-items-center">
+            <div class="header-brand fw-bold fs-4 text-dark" style="cursor:pointer;" onclick="window.location.href='Home.html'">
+                <i class="bi bi-tools me-2 fs-2"></i> <span class="d-none d-sm-inline">CMMS System</span><span class="d-inline d-sm-none">CMMS</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="user-info-badge d-none d-lg-block fw-bold bg-white text-dark border border-2 border-dark rounded px-3 py-2" style="box-shadow: 2px 2px 0 var(--neo-dark);">
+                    <i class="bi bi-person-badge-fill me-1"></i> <span id="topUserName">-</span> | <span id="topUserDept">-</span>
+                </div>
+                <a href="Home.html" class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);"><i class="bi bi-house-door"></i><span class="d-none d-md-inline ms-1"> Home</span></a>
+                <button class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);" onclick="loadData()"><i class="bi bi-arrow-clockwise"></i></button>
+                <button class="btn btn-dark border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 #fff;" onclick="logout()"><i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline ms-1"> Logout</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid py-2 px-md-4 max-w-7xl">
+
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <div>
+                <label class="form-label small fw-bold mb-1">🔍 กรองตามแผนกผู้แจ้ง</label>
+                <select id="deptFilter" class="form-select-neo" onchange="applyFilter()" style="min-width: 200px;">
+                    <option value="all">แสดงทุกแผนก</option>
+                    </select>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4 col-lg">
+                <div class="card stat-card p-3 d-flex flex-row align-items-center gap-3 h-100">
+                    <div class="fs-1 text-primary" style="color: var(--neo-dark) !important;"><i class="bi bi-list-check"></i></div>
+                    <div><div class="small fw-bold text-muted">งานทั้งหมด</div><h3 class="fw-bold mb-0" id="stat-total">0</h3></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg">
+                <div class="card stat-card stat-dark p-3 d-flex flex-row align-items-center gap-3 h-100">
+                    <div class="fs-1" style="color: #ffd700;"><i class="bi bi-clock-history"></i></div>
+                    <div><div class="small fw-bold text-light">รอดำเนินการ</div><h3 class="fw-bold mb-0 text-white" id="stat-pending">0</h3></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg">
+                <div class="card stat-card p-3 d-flex flex-row align-items-center gap-3 h-100">
+                    <div class="fs-1 text-info"><i class="bi bi-tools"></i></div>
+                    <div><div class="small fw-bold text-muted">กำลังดำเนินการ</div><h3 class="fw-bold mb-0" id="stat-processing">0</h3></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg">
+                <div class="card stat-card stat-green p-3 d-flex flex-row align-items-center gap-3 h-100">
+                    <div class="fs-1" style="color: var(--neo-dark);"><i class="bi bi-check-circle-fill"></i></div>
+                    <div><div class="small fw-bold" style="color: var(--neo-dark);">เสร็จสมบูรณ์</div><h3 class="fw-bold mb-0" id="stat-completed">0</h3></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg">
+                <div class="card stat-card stat-red p-3 d-flex flex-row align-items-center gap-3 h-100">
+                    <div class="fs-1" style="color: var(--neo-white);"><i class="bi bi-x-circle-fill"></i></div>
+                    <div><div class="small fw-bold text-light">ถูกตีกลับ/ยกเลิก</div><h3 class="fw-bold mb-0 text-white" id="stat-rejected">0</h3></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-lg-5">
+                <div class="card stat-card p-3 h-100 d-flex flex-column">
+                    <h6 class="fw-bold mb-3 text-center border-bottom pb-2"><i class="bi bi-pie-chart"></i> สัดส่วนทุกสถานะงานซ่อม</h6>
+                    <div style="position: relative; height: 250px; width: 100%; display: flex; align-items: center; justify-content: center;">
+                        <canvas id="statusPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+                <div class="card stat-card p-3 h-100 d-flex flex-column">
+                    <h6 class="fw-bold mb-3 text-center border-bottom pb-2"><i class="bi bi-bar-chart-fill"></i> สถิติงานซ่อมแยกตามแผนก (งานที่อยู่ระหว่างดำเนินการ)</h6>
+                    <div style="position: relative; height: 250px; width: 100%;">
+                        <canvas id="deptBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="text-center py-5 table-card mb-4">
+            <div class="spinner-border text-dark" role="status" style="width: 3rem; height: 3rem;"></div>
+            <p class="mt-3 fw-bold">กำลังดึงข้อมูลจากระบบ...</p>
+        </div>
+
+        <div id="content-area" class="d-none">
+            
+            <div class="table-card overflow-hidden d-none d-md-block mb-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="min-width: 900px;">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="p-3">รหัสงาน / แผนก</th>
+                                <th class="p-3">สถานะ</th>
+                                <th class="p-3">เป้าหมาย (เครื่อง/อาคาร)</th>
+                                <th class="p-3">ปัญหาที่พบ</th>
+                                <th class="p-3">กำหนดเสร็จ</th>
+                                <th class="p-3">ความคืบหน้า</th>
+                                <th class="p-3 text-center">รูปก่อนซ่อม</th>
+                                <th class="p-3 text-center">รูปหลังซ่อม</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="card-grid" class="d-md-none mb-4 row g-3">
+                </div>
+
+            <div class="table-card p-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mb-5">
+                <div class="small fw-bold">
+                    แสดงรายการที่ <span id="page-start" class="text-primary" style="color: var(--neo-dark) !important;">0</span> 
+                    ถึง <span id="page-end" class="text-primary" style="color: var(--neo-dark) !important;">0</span> 
+                    จากทั้งหมด <span id="page-total" class="text-primary" style="color: var(--neo-dark) !important;">0</span>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <button onclick="prevPage()" id="btn-prev" class="btn-neo"><i class="bi bi-chevron-left"></i> ก่อน</button>
+                    <div id="pagination-numbers" class="d-flex gap-1"></div>
+                    <button onclick="nextPage()" id="btn-next" class="btn-neo">ถัดไป <i class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="image-modal" onclick="closeModal()">
+        <button class="close-modal"><i class="bi bi-x-lg"></i></button>
+        <img id="modal-img" src="" onclick="event.stopPropagation()">
+    </div>
+
+    <script>
+        let allTicketsRaw = [];     // เก็บข้อมูลดิบทั้งหมด
+        let filteredTickets = [];   // เก็บข้อมูลที่ผ่านการกรองแล้ว
+        let currentPage = 1;
+        const rowsPerPage = 10; 
+        
+        let myPieChart = null;
+        let myBarChart = null;
+
+        // ชุดสีสำหรับสถานะต่างๆ (Neo-Brutalist Colors)
+        const statusColors = ['#ffd700', '#0dcaf0', '#B9FF66', '#FF9F43', '#FF6B6B', '#A29BFE', '#55EFC4', '#81ECEC', '#e74c3c', '#95a5a6'];
+
+        document.addEventListener("DOMContentLoaded", function() {
+            loadData();
+        });
+
+        function logout() { 
+            localStorage.clear(); 
+            window.location.href = "Login.html?target=Monitor.html"; 
+        }
+
+        // ฟังก์ชันดึงตัวย่อแผนกจากรหัสตั๋ว เช่น "PD 001/69" -> "PD"
+        function getDeptFromTicket(ticketId) {
+            if (!ticketId) return "ไม่ระบุ";
+            const parts = ticketId.trim().split(" ");
+            return parts.length > 0 ? parts[0] : "ไม่ระบุ";
+        }
+
+        // ฟังก์ชันแปลงวันที่ยาวให้เป็นรูปแบบสั้น (Wed Jun 24 2026)
+        function formatShortDate(dateStr) {
+            if (!dateStr || dateStr === '-') return '-';
+            try {
+                const d = new Date(dateStr);
+                if (!isNaN(d.getTime())) return d.toDateString();
+            } catch (e) {}
+            return dateStr.split(' 00:')[0];
+        }
+
+        function loadData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content-area').classList.add('d-none');
+            document.getElementById('content-area').classList.remove('d-block');
+            
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(function(response) {
+                        if (response && !response.error) {
+                            allTicketsRaw = response.allTickets || [];
+                            
+                            // สร้างตัวเลือกแผนกใน Dropdown
+                            populateDeptFilterDropdown();
+                            
+                            // วาดกราฟแท่ง (Bar Chart) วิเคราะห์แยกตามแผนก (อ้างอิงข้อมูลตั้งต้น)
+                            renderBarChart();
+
+                            // กรองและวาดข้อมูลในตาราง
+                            applyFilter(); 
+                            
+                        } else {
+                            alert("เกิดข้อผิดพลาด: " + (response ? response.message : "ไม่สามารถติดต่อเซิร์ฟเวอร์ได้"));
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        alert("ล้มเหลวในการเชื่อมต่อ: " + err.toString());
+                    })
+                    .getDashboardData();
+            } else {
+                document.getElementById('loading').style.display = 'none';
+                alert("กรุณา Deploy บน Google Apps Script เพื่อใช้งานระบบ");
+            }
+        }
+
+        // ฟังก์ชันสร้างตัวเลือกแผนกใน Dropdown
+        function populateDeptFilterDropdown() {
+            const deptSet = new Set();
+            allTicketsRaw.forEach(t => {
+                deptSet.add(getDeptFromTicket(t.ticket));
+            });
+            
+            const deptFilter = document.getElementById('deptFilter');
+            deptFilter.innerHTML = '<option value="all">แสดงทุกแผนก</option>';
+            
+            Array.from(deptSet).sort().forEach(dept => {
+                if(dept !== "ไม่ระบุ" && dept !== "") {
+                    deptFilter.innerHTML += `<option value="${dept}">แผนก: ${dept}</option>`;
+                }
+            });
+        }
+
+        // ฟังก์ชันทำงานเมื่อกดเปลี่ยนแผนกใน Dropdown
+        function applyFilter() {
+            const selectedDept = document.getElementById('deptFilter').value;
+            
+            if (selectedDept === "all") {
+                filteredTickets = [...allTicketsRaw];
+            } else {
+                filteredTickets = allTicketsRaw.filter(t => getDeptFromTicket(t.ticket) === selectedDept);
+            }
+            
+            // การนับ KPI ด้านบน (แบ่งเป็น 4 หมวดสถานะหลัก และ 1 หมวดตีกลับ/ยกเลิก)
+            let pending = 0, processing = 0, completed = 0, rejected = 0;
+            
+            filteredTickets.forEach(t => {
+                const s = t.status || "";
+                if (s === "Pending" || s === "รอดำเนินการ") pending++;
+                else if (s.includes("สมบูรณ์") || s.includes("เสร็จสิ้น")) completed++;
+                else if (s.includes("ตีกลับ") || s.includes("ยกเลิก") || s.includes("ปฏิเสธ")) rejected++;
+                else processing++; // ให้สถานะอื่นๆ นอกเหนือจากนี้อยู่ในหมวด "กำลังดำเนินการ"
+            });
+            
+            document.getElementById('stat-total').innerText = filteredTickets.length;
+            document.getElementById('stat-pending').innerText = pending;
+            document.getElementById('stat-processing').innerText = processing;
+            document.getElementById('stat-completed').innerText = completed;
+            document.getElementById('stat-rejected').innerText = rejected;
+
+            // วาดกราฟวงกลมแยกแบบละเอียดทุกสถานะตามข้อมูลที่ถูกกรอง (ไม่จำกัดแค่ 3 หมวด)
+            renderPieChart(filteredTickets);
+            
+            currentPage = 1;
+            renderDashboard();
+        }
+
+        // ฟังก์ชันวาดกราฟแท่ง (Bar Chart) วิเคราะห์แยกตามแผนก (ทุกสถานะ ยกเว้น ทวนสอบ และ เสร็จสมบูรณ์)
+        function renderBarChart() {
+            const ctx = document.getElementById('deptBarChart').getContext('2d');
+            
+            const deptSet = new Set();
+            const statusSet = new Set();
+            const deptStats = {};
+
+            // 1. แยกแผนกและสถานะ พร้อมนับจำนวน
+            allTicketsRaw.forEach(t => {
+                const dept = getDeptFromTicket(t.ticket);
+                const status = t.status || "ไม่ระบุ";
+                const sLower = status.toLowerCase();
+
+                // ข้ามสถานะที่เกี่ยวกับการทวนสอบ (Verify) และเสร็จสิ้น (Complete)
+                if (sLower.includes("ทวนสอบ") || sLower.includes("verify") || 
+                    sLower.includes("สมบูรณ์") || sLower.includes("เสร็จสิ้น") || sLower.includes("complete")) {
+                    return; 
+                }
+
+                deptSet.add(dept);
+                statusSet.add(status);
+
+                if (!deptStats[dept]) deptStats[dept] = {};
+                if (!deptStats[dept][status]) deptStats[dept][status] = 0;
+
+                deptStats[dept][status]++;
+            });
+
+            const labels = Array.from(deptSet).sort();
+            const allowedStatuses = Array.from(statusSet).sort();
+
+            // 2. สร้าง Datasets แบบไดนามิก
+            const datasets = [];
+            // ชุดสี Neo-Brutalist ดึงจากที่กำหนดไว้ด้านบน
+            const chartColors = ['#191A23', '#FF9F43', '#0dcaf0', '#FF6B6B', '#A29BFE', '#55EFC4', '#ffd700', '#81ECEC', '#e74c3c'];
+
+            allowedStatuses.forEach((status, index) => {
+                const data = labels.map(dept => deptStats[dept][status] || 0);
+                datasets.push({
+                    label: status,
+                    data: data,
+                    backgroundColor: chartColors[index % chartColors.length],
+                    borderColor: '#191A23',
+                    borderWidth: 2
+                });
+            });
+
+            if (myBarChart) myBarChart.destroy();
+
+            // 3. วาดกราฟแท่งแบบ Stacked
+            myBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            stacked: true, // ทำให้กราฟซ้อนกัน
+                            ticks: { stepSize: 1, font: { family: "'Sarabun', sans-serif" } } 
+                        },
+                        x: { 
+                            stacked: true, // ทำให้กราฟซ้อนกัน
+                            ticks: { font: { family: "'Sarabun', sans-serif", weight: 'bold' } } 
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            position: 'top', 
+                            labels: { 
+                                font: { family: "'Sarabun', sans-serif", size: 11 }, 
+                                color: '#191A23',
+                                usePointStyle: true,
+                                boxWidth: 8
+                            } 
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // ฟังก์ชันวาดกราฟวงกลม ดึงสถานะแบบไดนามิกแยกทุกสถานะที่มีในระบบ
+        function renderPieChart(ticketsData) {
+            const ctx = document.getElementById('statusPieChart').getContext('2d');
+            
+            if (myPieChart) myPieChart.destroy();
+            
+            // นับแยกทุกสถานะแบบไดนามิก
+            const statusCounts = {};
+            ticketsData.forEach(t => {
+                const s = t.status || "ไม่ระบุสถานะ";
+                statusCounts[s] = (statusCounts[s] || 0) + 1;
+            });
+
+            const labels = Object.keys(statusCounts);
+            const dataValues = Object.values(statusCounts);
+            
+            const hasData = dataValues.length > 0;
+            const finalLabels = hasData ? labels : ['ไม่มีข้อมูล'];
+            const finalData = hasData ? dataValues : [1];
+            
+            // สุ่มจัดสีตามอาร์เรย์ statusColors
+            const finalColors = hasData ? labels.map((_, i) => statusColors[i % statusColors.length]) : ['#E0E0E0'];
+
+            myPieChart = new Chart(ctx, {
+                type: 'doughnut', 
+                data: {
+                    labels: finalLabels,
+                    datasets: [{
+                        data: finalData,
+                        backgroundColor: finalColors,
+                        borderColor: '#191A23',
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '45%',
+                    plugins: {
+                        legend: { 
+                            position: 'right', 
+                            labels: { font: { family: "'Sarabun', sans-serif", weight: 'bold', size: 10 }, color: '#191A23', boxWidth: 12 } 
+                        },
+                        tooltip: { enabled: hasData }
+                    }
+                }
+            });
+        }
+
+        function renderDashboard() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content-area').classList.remove('d-none');
+            document.getElementById('content-area').classList.add('d-block');
+
+            const tableBody = document.getElementById('table-body');
+            const cardGrid = document.getElementById('card-grid');
+            
+            tableBody.innerHTML = '';
+            cardGrid.innerHTML = '';
+
+            if (filteredTickets.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center p-5 text-muted fw-bold">📭 ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
+                cardGrid.innerHTML = `<div class="col-12"><div class="stat-card p-5 text-center text-muted fw-bold">📭 ไม่พบข้อมูลที่ตรงกับเงื่อนไข</div></div>`;
+                updatePagination(0);
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = Math.min(startIndex + rowsPerPage, filteredTickets.length);
+            const paginatedData = filteredTickets.slice(startIndex, endIndex);
+
+            paginatedData.forEach(item => {
+                const statusBadge = getStatusBadge(item.status);
+                const deptBadge = getDeptFromTicket(item.ticket);
+                const shortExpectedDate = formatShortDate(item.expectedDate);
+                
+                const imgBefore = item.imageUrl ? `<img src="${item.imageUrl}" onclick="openModal('${item.imageUrl}')" class="img-thumbnail-neo">` : `<span class="text-muted small">-</span>`;
+                const imgAfter = item.completionImageUrl ? `<img src="${item.completionImageUrl}" onclick="openModal('${item.completionImageUrl}')" class="img-thumbnail-neo">` : `<span class="text-muted small">-</span>`;
+
+                // Render Desktop
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="p-3">
+                        <div class="fw-bold" style="color: var(--neo-dark);">${item.ticket}</div>
+                        <div class="small text-muted"><span class="badge bg-secondary-neo me-1">แผนก: ${deptBadge}</span> <i class="bi bi-calendar3"></i> ${item.date}</div>
+                    </td>
+                    <td class="p-3">${statusBadge}</td>
+                    <td class="p-3 fw-bold">${item.target}</td>
+                    <td class="p-3">
+                        <div class="text-truncate" style="max-width: 200px;" title="${item.problem}">${item.problem}</div>
+                        <div class="small text-muted mt-1">แจ้งโดย: ${item.reqName}</div>
+                    </td>
+                    <td class="p-3 small fw-bold text-danger">${shortExpectedDate}</td>
+                    <td class="p-3">
+                        <div class="progress-neo mb-1"><div class="progress-bar-neo" style="width: ${item.progress}%"></div></div>
+                        <span class="small fw-bold">${item.progress}%</span>
+                    </td>
+                    <td class="p-3 text-center">${imgBefore}</td>
+                    <td class="p-3 text-center">${imgAfter}</td>
+                `;
+                tableBody.appendChild(row);
+
+                // Render Mobile
+                const card = document.createElement('div');
+                card.className = "col-12";
+                card.innerHTML = `
+                    <div class="stat-card p-3">
+                        <div class="d-flex justify-content-between align-items-start border-bottom pb-2 mb-2">
+                            <div><span class="small text-muted d-block">รหัสงาน</span><span class="fw-bold fs-6">${item.ticket}</span></div>
+                            <div>${statusBadge}</div>
+                        </div>
+                        <div class="row g-2 small mb-2">
+                            <div class="col-6"><span class="text-muted d-block">เป้าหมาย</span><span class="fw-bold">${item.target}</span></div>
+                            <div class="col-6"><span class="text-muted d-block">แผนกที่แจ้ง</span><span class="fw-bold"><span class="badge bg-secondary-neo">${deptBadge}</span></span></div>
+                        </div>
+                        <div class="mb-2">
+                            <span class="small text-muted d-block">ปัญหาที่พบ</span>
+                            <p class="mb-0 small fw-bold">${item.problem}</p>
+                        </div>
+                        <div class="mb-2">
+                            <span class="small text-muted d-block">กำหนดเสร็จ</span>
+                            <span class="small fw-bold text-danger"><i class="bi bi-calendar-event"></i> ${shortExpectedDate}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top mb-2 small">
+                            <div><span class="text-muted">คืบหน้า:</span> <span class="fw-bold">${item.progress}%</span></div>
+                            <div class="text-muted">แจ้งโดย: ${item.reqName}</div>
+                        </div>
+                        <div class="row g-2 pt-2 border-top text-center">
+                            <div class="col-6">
+                                <span class="d-block" style="font-size: 10px;">รูปก่อนซ่อม</span>
+                                ${item.imageUrl ? `<img src="${item.imageUrl}" onclick="openModal('${item.imageUrl}')" class="img-thumbnail-neo mt-1 w-100 h-auto" style="max-height: 80px;">` : `<div class="bg-light border rounded py-3 mt-1 small text-muted">-</div>`}
+                            </div>
+                            <div class="col-6">
+                                <span class="d-block" style="font-size: 10px;">รูปหลังซ่อม</span>
+                                ${item.completionImageUrl ? `<img src="${item.completionImageUrl}" onclick="openModal('${item.completionImageUrl}')" class="img-thumbnail-neo mt-1 w-100 h-auto" style="max-height: 80px;">` : `<div class="bg-light border rounded py-3 mt-1 small text-muted">-</div>`}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                cardGrid.appendChild(card);
+            });
+
+            updatePagination(startIndex);
+        }
+
+        // Modal Functions
+        function openModal(url) {
+            if (!url) return;
+            const modal = document.getElementById('image-modal');
+            document.getElementById('modal-img').src = url;
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('image-modal');
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function getStatusBadge(status) {
+            let colorClass = "bg-secondary-neo";
+            const s = status ? status.toString() : "";
+            
+            if (s === "Pending" || s === "รอดำเนินการ") colorClass = "bg-warning-neo";
+            else if (s.includes("รอรับมอบงาน")) colorClass = "bg-primary text-white"; 
+            else if (s.includes("ระหว่าง") || s.includes("ดำเนินการ") || s.includes("ทวนสอบ")) colorClass = "bg-info-neo";
+            else if (s.includes("อนุมัติ")) colorClass = "bg-dark text-white";
+            else if (s.includes("สมบูรณ์") || s === "เสร็จสิ้น") colorClass = "bg-success-neo";
+            else if (s.includes("ยกเลิก") || s.includes("ปฏิเสธ") || s.includes("ตีกลับ")) colorClass = "bg-danger-neo";
+            
+            return `<span class="badge-status ${colorClass}">${s}</span>`;
+        }
+
+        function updatePagination(startIndex) {
+            const totalPages = Math.ceil(filteredTickets.length / rowsPerPage);
+            
+            document.getElementById('page-start').innerText = filteredTickets.length === 0 ? 0 : startIndex + 1;
+            document.getElementById('page-end').innerText = Math.min(startIndex + rowsPerPage, filteredTickets.length);
+            document.getElementById('page-total').innerText = filteredTickets.length;
+
+            document.getElementById('btn-prev').disabled = (currentPage === 1);
+            document.getElementById('btn-next').disabled = (currentPage === totalPages || totalPages === 0);
+
+            const numbersContainer = document.getElementById('pagination-numbers');
+            numbersContainer.innerHTML = '';
+
+            let startPage = Math.max(1, currentPage - 1);
+            let endPage = Math.min(totalPages, startPage + 2);
+            if (endPage - startPage < 2) {
+                startPage = Math.max(1, endPage - 2);
+            }
+
+            for (let i = startPage; i <= totalPages; i++) {
+                if (i < startPage || i > endPage) continue;
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                btn.className = `btn-neo px-3 ${i === currentPage ? 'btn-neo-dark' : ''}`;
+                btn.onclick = function() { currentPage = i; renderDashboard(); };
+                numbersContainer.appendChild(btn);
+            }
+        }
+
+        function prevPage() { if (currentPage > 1) { currentPage--; renderDashboard(); } }
+        function nextPage() { const totalPages = Math.ceil(filteredTickets.length / rowsPerPage); if (currentPage < totalPages) { currentPage++; renderDashboard(); } }
+    </script>
+</body>
+</html>
+

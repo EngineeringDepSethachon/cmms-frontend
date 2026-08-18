@@ -1,0 +1,417 @@
+<!-- หน้าแรก (Portal): ศูนย์รวมเมนูเข้าใช้งานตามสิทธิ์ (Role-Based Launcher) -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMMS Portal - หน้าแรก</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neo-dark: #191A23;
+            --neo-light: #F3F3F3;
+            --neo-green: #B9FF66;
+            --neo-white: #FFFFFF;
+            --border-width: 2px;
+            --shadow-depth: 4px;
+        }
+
+        body { 
+            background-color: var(--neo-white); 
+            font-family: 'Sarabun', sans-serif; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            color: var(--neo-dark);
+        }
+
+        /* Neo-Brutalist Cards — สีเดียวกันหมดทุกปุ่ม */
+        .app-card { 
+            background-color: var(--neo-white);
+            border: var(--border-width) solid var(--neo-dark); 
+            border-radius: 16px; 
+            box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark);
+            transition: all 0.1s ease; 
+            cursor: pointer; 
+            height: 100%; 
+            text-decoration: none; 
+            color: var(--neo-dark);
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-card:hover { 
+            transform: translate(2px, 2px); 
+            box-shadow: 2px 2px 0px var(--neo-dark); 
+            background-color: var(--neo-green);
+            color: var(--neo-dark);
+        }
+
+        .card-icon {
+            font-size: 2.8rem;
+            margin-right: 20px;
+            color: var(--neo-dark);
+        }
+
+        .card-content {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .card-content h5 {
+            font-family: 'Prompt', sans-serif;
+            font-weight: 800;
+            margin-bottom: 5px;
+            font-size: 1.4rem;
+            color: var(--neo-dark);
+        }
+
+        .card-content .sub-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .card-arrow {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--neo-dark);
+            color: var(--neo-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transform: rotate(-45deg);
+            border: 2px solid transparent;
+        }
+
+        /* Debug Banner */
+        .debug-banner {
+            background: #fff3cd;
+            border: 2px solid var(--neo-dark);
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            box-shadow: 3px 3px 0 var(--neo-dark);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="border-bottom border-3 border-dark mb-4" style="background-color: var(--neo-green); padding: 15px 0; box-shadow: 0 4px 0 var(--neo-dark); position: relative; z-index: 10;">
+        <div class="container-fluid px-md-4 d-flex justify-content-between align-items-center">
+            <div class="fw-bold fs-4 text-dark" style="cursor:pointer;" onclick="window.location.href='Home.html'">
+                <i class="bi bi-tools me-2 fs-2"></i> <span class="d-none d-sm-inline">CMMS System</span><span class="d-inline d-sm-none">CMMS</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="d-none d-lg-block fw-bold bg-white text-dark border border-2 border-dark rounded px-3 py-2" style="box-shadow: 2px 2px 0 var(--neo-dark);">
+                    <i class="bi bi-person-badge-fill me-1"></i> <span id="topUserName">-</span> | <span id="topUserRoleBadge">-</span>
+                </div>
+                <button class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);" onclick="window.location.href='Home.html'"><i class="bi bi-arrow-clockwise"></i></button>
+                <button class="btn btn-dark border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 #fff;" onclick="logout()"><i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline ms-1"> Logout</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container flex-grow-1 d-flex flex-column justify-content-center py-4">
+
+        <!-- Debug Banner -->
+        <div class="debug-banner mb-3 text-center" id="debugBanner" style="display:none;">
+            <i class="bi bi-bug me-1"></i> <strong>DEBUG</strong>: userLevel = <span id="dbgLevel">?</span> | userRole = <span id="dbgRole">?</span> | เมนูที่เปิด = <span id="dbgMenus">0</span>
+        </div>
+
+        <div class="row g-4 mb-5" id="menuContainer">
+            
+            <!-- 1. แจ้งซ่อม -->
+            <div class="col-md-6 col-lg-4" id="menu-index" style="display:none;">
+                <a href="Index.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-wrench-adjustable"></i></div>
+                    <div class="card-content">
+                        <h5>แจ้งซ่อม</h5>
+                        <div class="sub-label">Submit Maintenance Request</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 2. Monitor -->
+            <div class="col-md-6 col-lg-4" id="menu-monitor" style="display:none;">
+                <a href="Monitor.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-display"></i></div>
+                    <div class="card-content">
+                        <h5>Monitor</h5>
+                        <div class="sub-label">Tracking Board</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 3. คลังอะไหล่ -->
+            <div class="col-md-6 col-lg-4" id="menu-inventory" style="display:none;">
+                <a href="Inventory.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-box-seam"></i></div>
+                    <div class="card-content">
+                        <h5>คลังอะไหล่</h5>
+                        <div class="sub-label">Stock & Stock Card</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 4. แผนงาน PM -->
+            <div class="col-md-6 col-lg-4" id="menu-pm" style="display:none;">
+                <a href="PM.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
+                    <div class="card-content">
+                        <h5>แผนงาน PM</h5>
+                        <div class="sub-label">Plan vs Actual</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 5. งานซ่อมบำรุง -->
+            <div class="col-md-6 col-lg-4" id="menu-maintenance" style="display:none;">
+                <a href="MaintenanceTech.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-wrench-adjustable-circle-fill"></i></div>
+                    <div class="card-content">
+                        <h5>งานซ่อมบำรุง</h5>
+                        <div class="sub-label">Maintenance Operations</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 6. งานห้องเครื่อง -->
+            <div class="col-md-6 col-lg-4" id="menu-engine" style="display:none;">
+                <a href="EngineRoom.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <div class="card-content">
+                        <h5>งานห้องเครื่อง</h5>
+                        <div class="sub-label">Engine Room Operations</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 7. Dashboard -->
+            <div class="col-md-6 col-lg-4" id="menu-dashboard" style="display:none;">
+                <a href="Dashboard.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-speedometer2"></i></div>
+                    <div class="card-content">
+                        <h5>Dashboard</h5>
+                        <div class="sub-label">Engineering Management</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 8. รับมอบงาน -->
+            <div class="col-md-6 col-lg-4" id="menu-handover" style="display:none;">
+                <a href="Handover.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-person-check"></i></div>
+                    <div class="card-content">
+                        <h5>รับมอบงาน</h5>
+                        <div class="sub-label">Supervisor Handover</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 9. ทวนสอบงาน -->
+            <div class="col-md-6 col-lg-4" id="menu-verify" style="display:none;">
+                <a href="Verify.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-shield-check"></i></div>
+                    <div class="card-content">
+                        <h5>ทวนสอบงาน</h5>
+                        <div class="sub-label">QC Verification</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 10. อนุมัติงาน -->
+            <div class="col-md-6 col-lg-4" id="menu-approve" style="display:none;">
+                <a href="Approve.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-check2-square"></i></div>
+                    <div class="card-content">
+                        <h5>อนุมัติงาน</h5>
+                        <div class="sub-label">Management Approval</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 11. จัดการลายเซ็น -->
+            <div class="col-md-6 col-lg-4" id="menu-signatures" style="display:none;">
+                <a href="Signatures.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-pen"></i></div>
+                    <div class="card-content">
+                        <h5>จัดการลายเซ็น</h5>
+                        <div class="sub-label">Signature Upload</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+            <!-- 12. ตั้งค่าสิทธิ์ (Level 5 Only) -->
+            <div class="col-md-6 col-lg-4" id="menu-role-config" style="display:none;">
+                <a href="RoleConfig.html" class="app-card">
+                    <div class="card-icon"><i class="bi bi-shield-lock-fill"></i></div>
+                    <div class="card-content">
+                        <h5 class="text-danger"><i class="bi bi-gear-fill me-1"></i>ตั้งค่าสิทธิ์</h5>
+                        <div class="sub-label">Role & Permission Config</div>
+                    </div>
+                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const userRole = localStorage.getItem('userRole') || '';
+        const userLevel = parseInt(localStorage.getItem('userLevel')) || 0;
+
+        if (!userRole) {
+            window.location.href = "Login.html?target=Home.html";
+        }
+
+        function showMenu(menuId) {
+            var el = document.getElementById(menuId);
+            if (el) el.style.display = 'block';
+        }
+
+        function hideAllMenus() {
+            const allCards = document.querySelectorAll('#menuContainer > div[id]');
+            allCards.forEach(function(c) { c.style.display = 'none'; });
+        }
+
+        function countVisibleMenus() {
+            var count = 0;
+            const allCards = document.querySelectorAll('#menuContainer > div[id]');
+            allCards.forEach(function(c) { if (c.style.display !== 'none') count++; });
+            return count;
+        }
+
+        function applyDefaultLevelPermissions() {
+            hideAllMenus();
+            
+            // Default Index & Monitor สำหรับทุกคน
+            showMenu('menu-index');
+            showMenu('menu-monitor');
+
+            if (userLevel === 1 || userRole === 'staff') {
+                showMenu('menu-inventory');
+            }
+            if (userLevel === 2 || userRole === 'supervisor') {
+                showMenu('menu-handover');
+            }
+            if (userLevel === 3 || userRole === 'engineer') {
+                showMenu('menu-dashboard');
+                showMenu('menu-pm');
+            }
+            if (userLevel === 4 || userRole === 'qc') {
+                showMenu('menu-verify');
+                showMenu('menu-pm');
+            }
+            if (userLevel === 5 || userRole === 'admin') {
+                showMenu('menu-inventory');
+                showMenu('menu-pm');
+                showMenu('menu-maintenance');
+                showMenu('menu-engine');
+                showMenu('menu-dashboard');
+                showMenu('menu-handover');
+                showMenu('menu-verify');
+                showMenu('menu-approve');
+                showMenu('menu-signatures');
+                showMenu('menu-role-config'); // Level 5 เห็นหน้าตั้งค่าสิทธิ์
+            }
+            if (userLevel === 6 || userRole === 'stock') {
+                showMenu('menu-inventory');
+            }
+            if (userLevel === 7 || userRole === 'maintenance_tech') {
+                showMenu('menu-inventory');
+                showMenu('menu-pm');
+                showMenu('menu-maintenance');
+            }
+            if (userLevel === 8 || userRole === 'engine_tech') {
+                showMenu('menu-inventory');
+                showMenu('menu-pm');
+                showMenu('menu-engine');
+            }
+        }
+
+        window.onload = function() {
+            document.getElementById('topUserName').innerText = localStorage.getItem('userName') || 'ไม่ระบุชื่อ';
+            
+            var labels = {1:'Staff (L1)', 2:'Supervisor (L2)', 3:'Engineer (L3)', 4:'QC (L4)', 5:'Admin (L5)', 6:'Stock (L6)', 7:'ช่างซ่อมบำรุง (L7)', 8:'ช่างห้องเครื่อง (L8)'};
+            document.getElementById('topUserRoleBadge').innerText = labels[userLevel] || ('Level ' + userLevel);
+            
+            // Debug Banner
+            var dbg = document.getElementById('debugBanner');
+            dbg.style.display = 'block';
+            document.getElementById('dbgLevel').innerText = userLevel + ' (type: ' + typeof userLevel + ')';
+            document.getElementById('dbgRole').innerText = userRole;
+
+            // แสดง Default ก่อนชั่วคราว
+            applyDefaultLevelPermissions();
+
+            // ดึงสิทธิ์ Dynamic จาก Backend (Sheet: Role_Permissions)
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res && res.success && res.permissions && res.permissions[userLevel]) {
+                        hideAllMenus();
+                        const p = res.permissions[userLevel];
+                        
+                        const moduleMap = {
+                            'index': 'menu-index',
+                            'monitor': 'menu-monitor',
+                            'inventory': 'menu-inventory',
+                            'pm': 'menu-pm',
+                            'maintenance': 'menu-maintenance',
+                            'engine_room': 'menu-engine',
+                            'dashboard': 'menu-dashboard',
+                            'handover': 'menu-handover',
+                            'verify': 'menu-verify',
+                            'approve': 'menu-approve',
+                            'signatures': 'menu-signatures',
+                            'role_config': 'menu-role-config'
+                        };
+
+                        Object.keys(moduleMap).forEach(key => {
+                            if (p[key] === true || p[key] === "TRUE" || p[key] === 1) {
+                                showMenu(moduleMap[key]);
+                            }
+                        });
+
+                        document.getElementById('dbgMenus').innerText = countVisibleMenus() + " (Dynamic Sheet)";
+                    } else {
+                        document.getElementById('dbgMenus').innerText = countVisibleMenus() + " (Default Fallback)";
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    document.getElementById('dbgMenus').innerText = countVisibleMenus() + " (Fallback Error)";
+                })
+                .getRolePermissions();
+        };
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "Login.html?target=Home.html";
+        }
+    </script>
+</body>
+</html>

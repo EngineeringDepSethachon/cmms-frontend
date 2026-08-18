@@ -1,0 +1,251 @@
+<!-- หน้าอนุมัติงาน (Management): สำหรับผู้บริหาร (Level 5) ตรวจสอบแผนงานและอนุมัติการซ่อม -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Approval</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --neo-dark: #191A23;
+            --neo-light: #F3F3F3;
+            --neo-green: #B9FF66;
+            --neo-white: #FFFFFF;
+            --border-width: 2px;
+            --shadow-depth: 4px;
+        }
+
+        body { 
+            background-color: var(--neo-white); 
+            font-family: 'Sarabun', sans-serif; 
+            color: var(--neo-dark);
+        }
+
+        /* Neo-Brutalist Header */
+        .system-header { 
+            background-color: var(--neo-white); 
+            color: var(--neo-dark); 
+            padding: 20px 0; 
+            border-bottom: var(--border-width) solid var(--neo-dark); 
+            margin-bottom: 2rem;
+        }
+
+        .header-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-brand i { margin-right: 10px; color: var(--neo-dark); }
+
+        /* Neo-Brutalist Buttons */
+        .btn-neo {
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 6px 14px;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+            transition: all 0.1s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-neo:hover { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); background-color: var(--neo-green); color: var(--neo-dark); }
+        
+        .btn-neo-dark { background-color: var(--neo-dark); color: var(--neo-white); }
+        .btn-neo-dark:hover { background-color: var(--neo-dark); color: var(--neo-green); }
+
+        .btn-neo-green { background-color: var(--neo-green); color: var(--neo-dark); }
+        .btn-neo-green:hover { background-color: var(--neo-green); transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); }
+
+        /* User Badge */
+        .user-info-badge {
+            background-color: var(--neo-green);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+        }
+
+        .approval-card { 
+            border-radius: 12px; 
+            border: var(--border-width) solid var(--neo-dark); 
+            box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark); 
+            background: var(--neo-white); 
+            transition: transform 0.1s; 
+            margin-bottom: 20px;
+        }
+        .approval-card:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--neo-dark); }
+        .approval-header {
+            background-color: var(--neo-dark);
+            color: var(--neo-white);
+            border-bottom: var(--border-width) solid var(--neo-dark);
+        }
+        .form-control-neo {
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 8px;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+        }
+    </style>
+</head>
+<body>
+    <!-- หัวกระดาษของระบบ (System Header) -->
+        <header class="system-header border-bottom border-3 border-dark mb-4" style="background-color: var(--neo-green); padding: 15px 0; box-shadow: 0 4px 0 var(--neo-dark); position: relative; z-index: 10;">
+        <div class="container-fluid px-md-4 d-flex justify-content-between align-items-center">
+            <div class="header-brand fw-bold fs-4 text-dark" style="cursor:pointer;" onclick="window.location.href='Home.html'">
+                <i class="bi bi-tools me-2 fs-2"></i> <span class="d-none d-sm-inline">CMMS System</span><span class="d-inline d-sm-none">CMMS</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="user-info-badge d-none d-lg-block fw-bold bg-white text-dark border border-2 border-dark rounded px-3 py-2" style="box-shadow: 2px 2px 0 var(--neo-dark);">
+                    <i class="bi bi-person-badge-fill me-1"></i> <span id="topUserName">-</span> | <span id="topUserDept">-</span>
+                </div>
+                <a href="Home.html" class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);"><i class="bi bi-house-door"></i><span class="d-none d-md-inline ms-1"> Home</span></a>
+                <button class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);" onclick="loadPendingJobs()"><i class="bi bi-arrow-clockwise"></i></button>
+                <button class="btn btn-dark border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 #fff;" onclick="logout()"><i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline ms-1"> Logout</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div id="mainSection" class="container py-2">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">การอนุมัติซ่อมบำรุง <span class="text-muted fs-5 fw-normal">(Management)</span></h2>
+            <p class="text-muted">กรุณาตรวจสอบแผนการซ่อมและกดอนุมัติเพื่อเริ่มดำเนินการ</p>
+        </div>
+
+        <div id="jobList">
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">กำลังโหลดรายการรออนุมัติ...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- ระบบตรวจสอบสิทธิ์ (Login Gatekeeper) ---
+        const userRole = localStorage.getItem('userRole');
+        const userLevel = parseInt(localStorage.getItem('userLevel') || 0);
+        const currentLogin = localStorage.getItem('userLogin');
+        const currentName = localStorage.getItem('userName');
+        const currentPos = localStorage.getItem('userPosition'); 
+
+        if (!userRole || userLevel < 5) {
+            alert('❌ เฉพาะผู้บริหาร (Level 5) เท่านั้นที่สามารถอนุมัติการซ่อมได้');
+            window.location.href = "Home.html";
+        }
+
+        function updateTopNavbar() {
+            document.getElementById('topUserName').innerText = localStorage.getItem('userName') || 'Unknown';
+            if (document.getElementById('topUserDept')) document.getElementById('topUserDept').innerText = localStorage.getItem('userDept') || '-';
+            if (document.getElementById('topUserPos')) document.getElementById('topUserPos').innerText = localStorage.getItem('userPosition') || 'Staff';
+        }
+
+        function logout() { localStorage.clear(); window.location.href = "Login.html?target=Approve.html"; }
+
+        let allTickets = [];
+
+        function loadPendingJobs() {
+            const container = document.getElementById('jobList');
+            container.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">⏳ กำลังตรวจสอบรายการรออนุมัติ...</p></div>';
+
+            google.script.run
+                .withSuccessHandler(function(data) {
+                    allTickets = data.allTickets;
+                    renderJobs();
+                })
+                .withFailureHandler(function(err) {
+                    container.innerHTML = `
+                        <div class="alert alert-danger text-center py-5 shadow-sm bg-white rounded-4">
+                            <i class="bi bi-exclamation-octagon-fill fs-1 d-block mb-3"></i>
+                            <h5 class="fw-bold">ไม่สามารถดึงข้อมูลรออนุมัติได้</h5>
+                            <p class="mb-0">${err.message}</p>
+                            <button class="btn btn-outline-danger mt-3" onclick="loadPendingJobs()">ลองใหม่อีกครั้ง</button>
+                        </div>`;
+                })
+                .getDashboardData();
+        }
+
+        window.onload = function() { 
+            updateTopNavbar(); 
+            loadPendingJobs(); 
+            // อัพเดทข้อมูลทุกๆ 10 นาที
+            setInterval(loadPendingJobs, 600000);
+        };
+
+        function renderJobs() {
+            // กรองเอาเฉพาะงานที่สถานะ "รออนุมัติการซ่อม"
+            const pendingApproval = allTickets.filter(t => t.status === "รออนุมัติการซ่อม");
+            
+            const container = document.getElementById('jobList');
+            container.innerHTML = '';
+
+            if (pendingApproval.length === 0) {
+                container.innerHTML = '<div class="alert alert-success text-center py-5 shadow-sm bg-white rounded-4">🎉 ไม่มีงานค้างอนุมัติในขณะนี้</div>';
+                return;
+            }
+
+            pendingApproval.forEach(t => {
+                container.innerHTML += `
+                    <div class="card approval-card p-0 overflow-hidden mb-4 border-0">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                            <span class="fw-bold fs-5"><i class="bi bi-ticket-perforated me-2"></i>${t.ticket}</span>
+                            <span class="badge bg-white text-primary rounded-pill px-3">${t.status}</span>
+                        </div>
+                        <div class="card-body bg-white p-4">
+                            <div class="row">
+                                <div class="col-md-6 border-end">
+                                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-clipboard-check me-2"></i>แผนการซ่อมบำรุง</h6>
+                                    <div class="mb-2 p-2 bg-light rounded"><b>⚠️ สาเหตุ:</b> ${t.cause || 'ไม่ได้ระบุ'}</div>
+                                    <div class="mb-2"><b>🛠️ วิธีแก้ไข:</b> ${t.repairMethod}</div>
+                                    <div class="mb-2"><b>👨‍✈️ ผู้ควบคุม:</b> ${t.assignDept}</div>
+                                    <div class="mb-2"><b>📅 กำหนดเสร็จ:</b> ${t.expectedDate}</div>
+                                    <hr>
+                                    <div class="small text-muted">ผู้รับแจ้ง: ${t.receiver} (${t.receivedDate || '-'})</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-success mb-3"><i class="bi bi-chat-left-dots me-2"></i>ความเห็นผู้บริหาร</h6>
+                                    <textarea id="note-${t.ticket}" class="form-control mb-3" rows="4" placeholder="ระบุเหตุผลหรือคำสั่งการเพิ่มเติม..."></textarea>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-success flex-grow-1 fw-bold py-3 shadow-sm" onclick="submitApproval('${t.ticket}', 'อนุมัติ')">✅ อนุมัติการซ่อม</button>
+                                        <button class="btn btn-outline-danger px-4" onclick="submitApproval('${t.ticket}', 'ไม่อนุมัติ')">❌ ปฏิเสธ</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function submitApproval(ticketId, action) {
+            if(!confirm(`ยืนยันการ${action} งานรหัส ${ticketId}?`)) return;
+
+            const appNote = document.getElementById(`note-${ticketId}`).value;
+
+            if (action === 'อนุมัติ') {
+                const nextStatus = 'อยู่ระหว่างการดำเนินการ';
+                const approverInfo = { name: currentName, position: currentPos, note: "อนุมัติ: " + appNote };
+                google.script.run.withSuccessHandler(function(res) {
+                    alert(res.message); loadPendingJobs();
+                }).updateTicketStatus_Full(ticketId, nextStatus, "", "", "", "", "", "", "", "", currentLogin, 60, "", "", "", null, approverInfo);
+            } else {
+                // ตีกลับสร้างใบใหม่
+                google.script.run.withSuccessHandler(function(res) {
+                    alert(res.message); loadPendingJobs();
+                }).rejectAndCloneTicket(ticketId, "ถูกตีกลับ (โดยผู้บริหาร)", appNote, currentLogin, currentName);
+            }
+        }
+
+        window.onload = function() { updateTopNavbar(); loadPendingJobs(); };
+    </script>
+</body>
+</html>

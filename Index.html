@@ -1,0 +1,336 @@
+<!-- หน้าหลัก (Frontend): แบบฟอร์มแจ้งซ่อมสำหรับพนักงาน รองรับระบบตรวจสอบ UID อัตโนมัติ -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบแจ้งซ่อมวิศวกรรม</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --neo-dark: #191A23;
+            --neo-light: #F3F3F3;
+            --neo-green: #B9FF66;
+            --neo-white: #FFFFFF;
+            --border-width: 2px;
+            --shadow-depth: 4px;
+        }
+
+        body { 
+            background-color: var(--neo-white); 
+            font-family: 'Sarabun', sans-serif; 
+            color: var(--neo-dark);
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+
+        /* Neo-Brutalist Header */
+        .system-header { 
+            background-color: var(--neo-white); 
+            color: var(--neo-dark); 
+            padding: 20px 0; 
+            border-bottom: var(--border-width) solid var(--neo-dark); 
+            margin-bottom: 2rem;
+        }
+
+        .header-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-brand i { margin-right: 10px; color: var(--neo-dark); }
+
+        .card { 
+            border-radius: 16px; 
+            border: var(--border-width) solid var(--neo-dark); 
+            box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark); 
+            background-color: var(--neo-white);
+        }
+
+        .form-control, .form-select {
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 8px;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+            transition: all 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            box-shadow: 4px 4px 0px var(--neo-green);
+            border-color: var(--neo-dark);
+        }
+
+        .btn-submit { 
+            background-color: var(--neo-green); 
+            color: var(--neo-dark); 
+            border: var(--border-width) solid var(--neo-dark); 
+            font-weight: bold; 
+            padding: 12px; 
+            border-radius: 8px;
+            box-shadow: 4px 4px 0px var(--neo-dark);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn-submit:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px var(--neo-dark);
+        }
+        .btn-submit:disabled { background: #ccc; opacity: 0.7; box-shadow: none; transform: none; }
+        
+        #loader { display: none; text-align: center; margin-top: 15px; }
+        .user-badge { 
+            background: var(--neo-light); 
+            border-radius: 12px; 
+            padding: 10px 15px; 
+            margin-bottom: 20px; 
+            border: var(--border-width) solid var(--neo-dark);
+            box-shadow: 2px 2px 0px var(--neo-dark);
+        }
+
+        .btn-neo {
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 4px 10px;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+            transition: all 0.1s ease;
+        }
+        .btn-neo:hover { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); background-color: var(--neo-green); }
+    </style>
+</head>
+<body>
+    <input type="hidden" id="userUid" value="">
+
+    <!-- Header -->
+    <header class="system-header border-bottom border-3 border-dark mb-4" style="background-color: var(--neo-green); padding: 15px 0; box-shadow: 0 4px 0 var(--neo-dark);">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="header-brand fw-bold fs-4 text-dark" style="cursor:pointer;" onclick="window.location.href='Home.html'">
+                <i class="bi bi-tools me-2 fs-2"></i> CMMS System
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="Home.html" class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);"><i class="bi bi-house-door me-1"></i> Home</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container d-flex flex-column align-items-center flex-grow-1">
+
+        <div class="card p-4 w-100 mt-2" style="max-width: 500px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <button class="btn-neo btn-sm" onclick="initApp()"><i class="bi bi-arrow-clockwise"></i> รีเฟรช</button>
+                <div class="text-end">
+                    <h3 class="fw-bold mb-0 text-dark">แจ้งซ่อมวิศวกรรม</h3>
+
+                    <p class="text-muted small mb-0">Maintenance Request</p>
+                </div>
+            </div>
+
+            <form id="repairForm">
+                <!-- ส่วนที่ 1: ข้อมูลผู้แจ้ง (ดึงอัตโนมัติ) -->
+                <div id="userInfoDisplay" class="user-badge" style="display: none;">
+                    <div class="small text-muted">ผู้แจ้งซ่อม:</div>
+                    <div id="displayReqName" class="fw-bold text-dark">-</div>
+                    <div id="displayReqDept" class="small text-primary">-</div>
+                </div>
+                
+                <div id="userNotFoundMsg" class="alert alert-danger mb-3" style="display: none;">
+                    <!-- ข้อความจะถูกเติมโดย JS -->
+                </div>
+
+                <input type="hidden" name="reqName" id="reqName">
+                <input type="hidden" name="reqPosition" id="reqPosition">
+                <input type="hidden" name="department" id="department">
+
+                <h6 class="fw-bold border-bottom pb-2 mb-3 mt-2 small text-uppercase text-muted">รายละเอียดงาน</h6>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">หมวดหมู่</label>
+                    <select class="form-select" name="category" required>
+                        <option value="Machine">เครื่องจักร (Machine)</option>
+                        <option value="Building">อาคาร/สถานที่ (Building)</option>
+                        <option value="Equipment">อุปกรณ์ (Equipment)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">รหัสเครื่องจักร / สถานที่</label>
+                    <input type="text" class="form-control" name="targetId" placeholder="ระบุเลขเครื่องหรือจุดที่เสีย" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">อาการเสีย / สิ่งที่ต้องการให้ทำ</label>
+                    <textarea class="form-control" name="problem" rows="3" placeholder="ระบุรายละเอียดอาการเสีย" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">📸 ถ่ายรูปหรือแนบภาพหน้างาน</label>
+                    <div class="d-flex gap-2 mb-2">
+                        <button type="button" class="btn btn-outline-dark flex-fill fw-bold" onclick="document.getElementById('cameraInput').click();">
+                            <i class="bi bi-camera"></i> ถ่ายรูป
+                        </button>
+                        <button type="button" class="btn btn-outline-dark flex-fill fw-bold" onclick="document.getElementById('galleryInput').click();">
+                            <i class="bi bi-image"></i> เลือกรูป
+                        </button>
+                    </div>
+                    <!-- Hidden inputs -->
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleImageSelection(this)">
+                    <input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="handleImageSelection(this)">
+                    
+                    <div id="imageStatus" class="small text-muted text-center p-2 border rounded" style="background-color: #f8f9fa;">
+                        ยังไม่ได้เลือกรูปภาพ
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-submit w-100 mt-3" id="submitBtn" disabled>🚀 ยืนยันส่งข้อมูลแจ้งซ่อม</button>
+            </form>
+            
+            <div id="loader">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="mt-2 text-muted small">กำลังบันทึกข้อมูล...</p>
+            </div>
+            <div id="statusMsg" class="mt-3 text-center small"></div>
+        </div>
+    </div>
+
+    <script>
+        var allUsers = [];
+        var selectedFile = null;
+
+        function handleImageSelection(input) {
+            if (input.files && input.files[0]) {
+                selectedFile = input.files[0];
+                document.getElementById('imageStatus').innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle"></i> เลือกรูปภาพแล้ว: ' + selectedFile.name + '</span>';
+                
+                // Clear the other input so we don't hold two files in memory
+                if (input.id === 'cameraInput') {
+                    document.getElementById('galleryInput').value = '';
+                } else {
+                    document.getElementById('cameraInput').value = '';
+                }
+            } else {
+                selectedFile = null;
+                document.getElementById('imageStatus').innerHTML = 'ยังไม่ได้เลือกรูปภาพ';
+            }
+        }
+
+        function initApp() {
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.innerHTML = '<div class="text-muted small">⏳ กำลังตรวจสอบข้อมูลพนักงาน...</div>';
+            
+            // 1. อ่านค่าจาก URL Parameter (?uid=...) หรือ element หรือ localStorage
+            const params = getUrlParams();
+            let targetUid = params.uid || document.getElementById('userUid').value;
+            
+            // 2. ถ้าไม่มี ให้หาจาก localStorage
+            if (!targetUid || targetUid === "undefined" || targetUid.trim() === "") {
+                targetUid = localStorage.getItem('userUid');
+            }
+            
+            if (targetUid && targetUid !== "undefined" && targetUid.trim() !== "") {
+                document.getElementById('userUid').value = targetUid;
+            } else {
+                document.getElementById('userUid').value = "";
+            }
+
+            google.script.run
+                .withSuccessHandler(identifyUserByUid)
+                .withFailureHandler(function(err) {
+                    statusMsg.innerHTML = '<div class="alert alert-danger">❌ เชื่อมต่อฐานข้อมูลไม่สำเร็จ: ' + err.message + '</div>';
+                })
+                .getMasterData();
+        }
+
+        window.onload = initApp;
+
+        function identifyUserByUid(users) {
+            allUsers = users;
+            const currentUid = document.getElementById('userUid').value;
+            const statusMsg = document.getElementById('statusMsg');
+            const submitBtn = document.getElementById('submitBtn');
+            const userInfoDisplay = document.getElementById('userInfoDisplay');
+            const userNotFoundMsg = document.getElementById('userNotFoundMsg');
+
+            if (!currentUid) {
+                statusMsg.innerHTML = '';
+                userNotFoundMsg.style.display = 'block';
+                userNotFoundMsg.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>ไม่พบไอดีผู้ใช้งาน (UID) กรุณาแจ้งซ่อมผ่าน LINE';
+                return;
+            }
+
+            const user = allUsers.find(u => u.uid.toString().trim() === currentUid.toString().trim());
+            
+            if (user) {
+                document.getElementById('reqName').value = user.name;
+                document.getElementById('reqPosition').value = user.role;
+                document.getElementById('department').value = user.department;
+                document.getElementById('displayReqName').innerText = user.name;
+                document.getElementById('displayReqDept').innerText = user.department + " (" + user.role + ")";
+                
+                userInfoDisplay.style.display = 'block';
+                userNotFoundMsg.style.display = 'none';
+                submitBtn.disabled = false; 
+                statusMsg.innerHTML = '<div class="alert alert-success py-1 small">✅ ยืนยันตัวตนสำเร็จ!</div>';
+            } else {
+                userInfoDisplay.style.display = 'none';
+                userNotFoundMsg.style.display = 'block';
+                userNotFoundMsg.innerHTML = '<i class="bi bi-person-x-fill me-2"></i>ไม่พบข้อมูลพนักงาน (UID: ' + currentUid + ') ในฐานข้อมูล';
+                submitBtn.disabled = true;
+                statusMsg.innerHTML = '';
+            }
+        }
+
+        document.getElementById('repairForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('statusMsg').innerHTML = '';
+
+            if (!selectedFile) {
+                alert("กรุณาถ่ายรูปหรือเลือกรูปภาพก่อนส่งข้อมูลครับ");
+                submitBtn.disabled = false;
+                document.getElementById('loader').style.display = 'none';
+                return;
+            }
+
+            const sendData = (fileBase64) => {
+                const formData = {
+                    reqName: document.getElementById('reqName').value,
+                    reqPosition: document.getElementById('reqPosition').value,
+                    department: document.getElementById('department').value.toUpperCase(),
+                    category: this.category.value,
+                    targetId: this.targetId.value,
+                    problem: this.problem.value,
+                    file: fileBase64 && selectedFile ? { base64: fileBase64, mimeType: selectedFile.type, fileName: selectedFile.name } : null,
+                    authUser: document.getElementById('userUid').value || document.getElementById('reqName').value 
+                };
+
+                const successHandler = function(response) {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('statusMsg').innerHTML = `<div class="alert alert-success">${response}</div>`;
+                    document.getElementById('repairForm').reset();
+                    selectedFile = null;
+                    document.getElementById('imageStatus').innerHTML = 'ยังไม่ได้เลือกรูปภาพ';
+                    identifyUserByUid(allUsers);
+                    submitBtn.disabled = false;
+                };
+
+                const failureHandler = function(err) {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('statusMsg').innerHTML = `<div class="alert alert-danger">Error: ${err}</div>`;
+                    submitBtn.disabled = false;
+                };
+
+                google.script.run.withSuccessHandler(successHandler).withFailureHandler(failureHandler).processForm(formData);
+            };
+
+            if (selectedFile) {
+                const reader = new FileReader();
+                reader.onload = function() { sendData(reader.result.split(',')[1]); };
+                reader.readAsDataURL(selectedFile);
+            } else { sendData(null); }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!-- หน้าจัดการแผน PM (Plan vs Actual) -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Schedule</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --neo-dark: #191A23;
+            --neo-light: #F3F3F3;
+            --neo-green: #B9FF66;
+            --neo-white: #FFFFFF;
+            --border-width: 2px;
+            --shadow-depth: 4px;
+        }
+
+        body { 
+            background-color: var(--neo-white); 
+            font-family: 'Sarabun', sans-serif; 
+            color: var(--neo-dark);
+        }
+
+        .system-header { 
+            background-color: var(--neo-white); 
+            color: var(--neo-dark); 
+            padding: 20px 0; 
+            border-bottom: var(--border-width) solid var(--neo-dark); 
+            margin-bottom: 2rem;
+        }
+
+        .header-brand { font-weight: 800; font-size: 1.5rem; display: flex; align-items: center; }
+        .header-brand i { margin-right: 10px; color: var(--neo-dark); }
+
+        .btn-neo {
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 6px 14px;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+            transition: all 0.1s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-neo:hover { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); background-color: var(--neo-green); color: var(--neo-dark); }
+        .btn-neo-dark { background-color: var(--neo-dark); color: var(--neo-white); }
+        .btn-neo-dark:hover { background-color: var(--neo-dark); color: var(--neo-green); }
+        .btn-neo-green { background-color: var(--neo-green); color: var(--neo-dark); }
+        .btn-neo-green:hover { background-color: var(--neo-green); transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); }
+
+        .user-info-badge { background-color: var(--neo-green); color: var(--neo-dark); border: var(--border-width) solid var(--neo-dark); border-radius: 20px; padding: 5px 15px; font-weight: bold; font-size: 0.85rem; box-shadow: 2px 2px 0px var(--neo-dark); }
+
+        .table-neo {
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 12px;
+            box-shadow: 4px 4px 0px var(--neo-dark);
+            overflow: hidden;
+            background-color: var(--neo-white);
+        }
+        
+        .table-neo th { background-color: var(--neo-dark); color: var(--neo-white); border-color: var(--neo-dark); white-space: nowrap; }
+        .table-neo td { border-color: var(--neo-dark); vertical-align: middle; }
+        
+        .form-check-input {
+            width: 1.5em; height: 1.5em; border: 2px solid var(--neo-dark); cursor: pointer;
+        }
+        .form-check-input:checked {
+            background-color: var(--neo-green); border-color: var(--neo-dark);
+        }
+
+        .form-control-neo { border: var(--border-width) solid var(--neo-dark); border-radius: 8px; box-shadow: 2px 2px 0px var(--neo-dark); }
+        .form-control-neo:focus { box-shadow: 4px 4px 0px var(--neo-green); outline: none; border-color: var(--neo-dark); }
+
+        .badge-status { border: 1px solid var(--neo-dark); font-weight: bold; color: var(--neo-dark); box-shadow: 2px 2px 0px var(--neo-dark); display: inline-block; cursor: default; }
+        .badge-status.cursor-pointer { cursor: pointer; }
+        .badge-status.cursor-pointer:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0px var(--neo-dark); }
+        .bg-success-neo { background-color: var(--neo-green); }
+        .bg-warning-neo { background-color: #ffd700; }
+    </style>
+</head>
+<body>
+        <header class="system-header border-bottom border-3 border-dark mb-4" style="background-color: var(--neo-green); padding: 15px 0; box-shadow: 0 4px 0 var(--neo-dark); position: relative; z-index: 10;">
+        <div class="container-fluid px-md-4 d-flex justify-content-between align-items-center">
+            <div class="header-brand fw-bold fs-4 text-dark" style="cursor:pointer;" onclick="window.location.href='Home.html'">
+                <i class="bi bi-tools me-2 fs-2"></i> <span class="d-none d-sm-inline">CMMS System</span><span class="d-inline d-sm-none">CMMS</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="user-info-badge d-none d-lg-block fw-bold bg-white text-dark border border-2 border-dark rounded px-3 py-2" style="box-shadow: 2px 2px 0 var(--neo-dark);">
+                    <i class="bi bi-person-badge-fill me-1"></i> <span id="topUserName">-</span> | <span id="topUserDept">-</span>
+                </div>
+                <a href="Home.html" class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);"><i class="bi bi-house-door"></i><span class="d-none d-md-inline ms-1"> Home</span></a>
+                <button class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);" onclick="loadPMs()"><i class="bi bi-arrow-clockwise"></i></button>
+                <button class="btn btn-dark border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 #fff;" onclick="logout()"><i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline ms-1"> Logout</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid px-md-4 py-2">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-0">PM Schedule</h2>
+                <div class="text-muted small">ตารางแผนงานซ่อมบำรุงเชิงป้องกันประจำปี</div>
+            </div>
+            <div id="roleBadge" class="badge bg-dark fs-6 px-3 py-2 border border-2 border-dark" style="box-shadow: 2px 2px 0px #000;">
+                กำลังโหลด...
+            </div>
+        </div>
+
+        <!-- แถบควบคุมตัวกรองและการลงทะเบียน -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 bg-light p-3 rounded border border-2 border-dark" style="box-shadow: 3px 3px 0px var(--neo-dark);">
+            <div class="d-flex align-items-center gap-2">
+                <label class="fw-bold text-dark mb-0 text-nowrap"><i class="bi bi-funnel-fill"></i> แผนกผู้รับผิดชอบ:</label>
+                <select id="deptFilter" class="form-select form-control-neo py-1" style="min-width: 200px;" onchange="filterPMs()">
+                    <option value="all">แสดงทั้งหมด (All Departments)</option>
+                    <option value="แผนกซ่อมบำรุง">แผนกซ่อมบำรุง (Maintenance)</option>
+                    <option value="แผนกห้องเครื่อง">แผนกห้องเครื่อง (Engine Room)</option>
+                </select>
+            </div>
+            <div id="adminActions" style="display:none;">
+                <button class="btn-neo btn-neo-green" onclick="openRegisterModal()"><i class="bi bi-plus-circle-fill"></i> ลงทะเบียนเครื่องจักร / ระบบ PM</button>
+            </div>
+        </div>
+
+        <div id="pmList"><div class="text-center p-5"><div class="spinner-border text-dark"></div><p class="mt-2">กำลังโหลดข้อมูล PM...</p></div></div>
+    </div>
+
+    <!-- Modal สำหรับ L3 บันทึกผล (Actual) -->
+    <div class="modal fade" id="actualModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: 2px solid var(--neo-dark); border-radius: 16px; box-shadow: 6px 6px 0px var(--neo-dark);">
+          <div class="modal-header border-bottom border-dark" style="background-color: var(--neo-light);">
+            <h5 class="modal-title fw-bold"><i class="bi bi-wrench"></i> บันทึกผลการทำ PM</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="modalTicketId">
+            <div class="mb-3">
+                <label class="fw-bold small mb-1">📸 รูปภาพผลการปฏิบัติงาน</label>
+                <input type="file" id="modalFile" class="form-control form-control-neo" accept="image/*">
+            </div>
+            <div class="mb-3">
+                <label class="fw-bold small mb-1">📝 หมายเหตุ (Remark)</label>
+                <textarea id="modalNote" class="form-control form-control-neo" rows="3" placeholder="ระบุสิ่งที่พบหรือแก้ไข..."></textarea>
+            </div>
+            <div id="modalStatus" class="mt-2 text-center small"></div>
+          </div>
+          <div class="modal-footer border-top border-dark bg-light">
+            <button type="button" class="btn-neo" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="button" class="btn-neo btn-neo-green" id="modalSaveBtn" onclick="saveActual()">✅ บันทึกเสร็จสิ้น</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal สำหรับ L5/L3 ดูรายละเอียด (View) -->
+    <div class="modal fade" id="viewModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: 2px solid var(--neo-dark); border-radius: 16px; box-shadow: 6px 6px 0px var(--neo-dark);">
+          <div class="modal-header border-bottom border-dark bg-success-neo">
+            <h5 class="modal-title fw-bold text-dark"><i class="bi bi-check-circle"></i> รายละเอียดงาน PM</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="viewImageContainer" class="text-center mb-3"></div>
+            <div class="p-3 bg-light rounded border border-dark">
+                <div class="mb-2"><small class="text-muted fw-bold">รหัสแผน:</small> <span id="viewTicketId" class="fw-bold text-dark"></span></div>
+                <div class="mb-2"><small class="text-muted fw-bold">ทำโดย:</small> <span id="viewActualBy" class="fw-bold text-dark"></span></div>
+                <div class="mb-2"><small class="text-muted fw-bold">เวลาทำจริง (Actual):</small> <span id="viewActualDate" class="text-primary fw-bold"></span></div>
+                <div><small class="text-muted fw-bold">Remark:</small> <span id="viewNote" class="text-dark"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal สำหรับลงทะเบียนเครื่องจักร/ระบบ PM ใหม่ -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: 2px solid var(--neo-dark); border-radius: 16px; box-shadow: 6px 6px 0px var(--neo-dark);">
+          <div class="modal-header border-bottom border-dark text-dark" style="background-color: var(--neo-green);">
+            <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle-fill"></i> ลงทะเบียนเครื่องจักร / ระบบ PM</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+                <label class="fw-bold small mb-1">⚙️ รหัสเครื่องจักร / ระบบ (Machine ID)</label>
+                <input type="text" id="regMachineId" class="form-control form-control-neo" placeholder="เช่น MC-BOILER-01" required>
+            </div>
+            <div class="mb-3">
+                <label class="fw-bold small mb-1">📋 ชื่อเครื่องจักร / ระบบ (Machine Name)</label>
+                <input type="text" id="regMachineName" class="form-control form-control-neo" placeholder="เช่น เครื่องกำเนิดไอน้ำ Boiler 1" required>
+            </div>
+            <div class="mb-3">
+                <label class="fw-bold small mb-1">🛠️ งานที่ต้องทำ (PM Task)</label>
+                <input type="text" id="regTask" class="form-control form-control-neo" placeholder="เช่น ตรวจเช็คเกจวัดความดันและวาล์วน้ำ" required>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold small mb-1">🏢 แผนกที่รับผิดชอบ</label>
+                    <select id="regDept" class="form-select form-control-neo">
+                        <option value="แผนกซ่อมบำรุง">แผนกซ่อมบำรุง</option>
+                        <option value="แผนกห้องเครื่อง">แผนกห้องเครื่อง</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold small mb-1">📝 หมายเหตุ (Remark)</label>
+                    <input type="text" id="regRemark" class="form-control form-control-neo" placeholder="ระบุข้อมูลเพิ่มเติม (ถ้ามี)">
+                </div>
+            </div>
+            <div id="regStatus" class="mt-2 text-center small"></div>
+          </div>
+          <div class="modal-footer border-top border-dark bg-light">
+            <button type="button" class="btn-neo" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="button" class="btn-neo btn-neo-green" id="regSaveBtn" onclick="saveRegistration()">💾 บันทึกลงทะเบียน</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        const userRole = localStorage.getItem('userRole');
+        const userLevel = parseInt(localStorage.getItem('userLevel') || 0);
+        const currentLogin = localStorage.getItem('userLogin');
+        const currentName = localStorage.getItem('userName');
+        let globalPMs = [];
+        let actualModalInstance;
+        let viewModalInstance;
+        let registerModalInstance;
+
+        // ตรวจสอบสิทธิ์: Level 3 (Engineer), Level 4 (QC), Level 5 (Admin), Level 7 (ช่างซ่อมบำรุง), Level 8 (ช่างห้องเครื่อง)
+        if (!userRole || (userLevel < 3 && userLevel !== 7 && userLevel !== 8)) { 
+            alert('❌ เฉพาะฝ่ายวิศวกรรม ช่างเทคนิค และฝ่ายบริหารจัดการเท่านั้น');
+            window.location.href = "Home.html";
+        }
+
+        window.onload = function() { 
+            document.getElementById('topUserName').innerText = currentName || 'Unknown';
+            document.getElementById('topUserDept').innerText = localStorage.getItem('userDept') || '-';
+            document.getElementById('topUserPos').innerText = localStorage.getItem('userPosition') || 'Staff';
+            
+            const roleBadge = document.getElementById('roleBadge');
+            if(userLevel === 5) {
+                roleBadge.innerHTML = "L5: Annual Planning Mode (จัดแผน PM)";
+                roleBadge.className = "badge bg-white text-dark fs-6 px-3 py-2 border border-2 border-dark";
+                document.getElementById('adminActions').style.display = 'block';
+            } else if (userLevel === 4) {
+                roleBadge.innerHTML = "L4: QC View Mode (ดูข้อมูลแผนงาน)";
+                roleBadge.className = "badge bg-info text-dark fs-6 px-3 py-2 border border-2 border-dark";
+            } else {
+                // Level 3, 7, 8: โหมดทำงาน (บันทึกผลจริง)
+                let levelLabel = userLevel === 7 ? "L7 (ช่างซ่อมบำรุง)" : (userLevel === 8 ? "L8 (ช่างห้องเครื่อง)" : "L3 (Engineer)");
+                roleBadge.innerHTML = `<i class="bi bi-tools me-1"></i> ${levelLabel}: Execution Mode (โหมดทำงาน)`;
+                roleBadge.className = "badge text-dark fs-6 px-3 py-2 border border-2 border-dark";
+                roleBadge.style.backgroundColor = "var(--neo-green)";
+            }
+
+            actualModalInstance = new bootstrap.Modal(document.getElementById('actualModal'));
+            viewModalInstance = new bootstrap.Modal(document.getElementById('viewModal'));
+            registerModalInstance = new bootstrap.Modal(document.getElementById('registerModal'));
+            
+            loadPMs(); 
+        };
+
+        function logout() { localStorage.clear(); window.location.href = "Login.html?target=PM.html"; }
+
+        function loadPMs() {
+            const container = document.getElementById('pmList');
+            container.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-dark"></div></div>';
+
+            google.script.run.withSuccessHandler(renderPMs).withFailureHandler(err => {
+                container.innerHTML = `<div class="alert alert-danger border border-2 border-dark">❌ Error: ${err.message}</div>`;
+            }).getPMData();
+        }
+
+        function renderPMs(data) {
+            if (data) {
+                if (data.error) {
+                    document.getElementById('pmList').innerHTML = `<div class="alert alert-danger border border-2 border-dark">❌ ${data.message}</div>`;
+                    return;
+                }
+                globalPMs = data.summary.allPMs;
+            }
+
+            const container = document.getElementById('pmList');
+            const monthNames = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            
+            let maintMap = {};
+            let engineMap = {};
+            const selectedDept = document.getElementById('deptFilter').value;
+            
+            globalPMs.forEach(p => {
+                let key = p.machineId + "###" + p.machineName + "###" + p.task;
+                const isEngine = (p.ref === "แผนกห้องเครื่อง");
+                
+                // แยกใส่ตามแผนกผู้รับผิดชอบ
+                let targetMap = isEngine ? engineMap : maintMap;
+
+                if (!targetMap[key]) {
+                    targetMap[key] = { baseId: p.id, machineId: p.machineId, machineName: p.machineName, task: p.task, dept: p.ref, notes: p.notes, months: {} };
+                }
+                
+                // แก้บั๊ก: ป้องกัน baseId หาย เพื่อให้สามารถติ๊กปุ่มเพิ่มแผนเดือนอื่นได้
+                if (p.id && (p.id.indexOf("-PM-") === -1 || !targetMap[key].baseId)) {
+                    targetMap[key].baseId = p.id;
+                }
+                
+                // เก็บหมายเหตุต้นแบบไว้แสดงในตาราง
+                if (p.notes && (!targetMap[key].notes || p.id.indexOf("-PM-") === -1)) {
+                    targetMap[key].notes = p.notes;
+                }
+                
+                if (p.planDate) {
+                    // 1. ค้นหาตัวย่อเดือนไทยก่อน (เช่น ม.ค. 2569)
+                    let mIdx = monthNames.findIndex(m => m !== "" && p.planDate.startsWith(m));
+                    if (mIdx > 0) {
+                        targetMap[key].months[mIdx] = p;
+                    } else {
+                        // 2. หากเก็บเป็น Date วัตถุ/หรือสตริงสากล ให้แปลงผ่าน JavaScript Date
+                        let d = new Date(p.planDate);
+                        if (!isNaN(d.getTime())) {
+                            let mIdxEng = d.getMonth() + 1; // 1-12
+                            targetMap[key].months[mIdxEng] = p;
+                        }
+                    }
+                }
+            });
+
+            // ฟังก์ชันช่วยสร้างตารางในแต่ละส่วนแผนก
+            function buildTableSection(gridMap, title, iconClass) {
+                if (Object.keys(gridMap).length === 0) {
+                    return `
+                    <div class="mb-5 bg-white p-4 rounded border border-2 border-dark" style="box-shadow: 4px 4px 0px var(--neo-dark);">
+                        <h4 class="fw-bold text-dark mb-3"><i class="${iconClass}"></i> ${title}</h4>
+                        <div class="alert alert-light border border-2 border-dark text-muted mb-0">🎉 ไม่มีรายการเครื่องจักร/ระบบในแผนกนี้</div>
+                    </div>`;
+                }
+
+                let html = `
+                <div class="mb-5 bg-white p-4 rounded border border-2 border-dark" style="box-shadow: 4px 4px 0px var(--neo-dark);">
+                    <h4 class="fw-bold text-dark mb-3"><i class="${iconClass}"></i> ${title}</h4>
+                    <div class="table-responsive table-neo">
+                        <table class="table table-bordered mb-0 text-center align-middle" style="min-width: 1000px;">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="min-width: 250px;">เครื่องจักร / งานที่ต้องทำ</th>
+                                    <th>ม.ค.</th><th>ก.พ.</th><th>มี.ค.</th><th>เม.ย.</th><th>พ.ค.</th><th>มิ.ย.</th>
+                                    <th>ก.ค.</th><th>ส.ค.</th><th>ก.ย.</th><th>ต.ค.</th><th>พ.ย.</th><th>ธ.ค.</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white">
+                `;
+
+                Object.values(gridMap).forEach(group => {
+                    html += `<tr>
+                        <td class="text-start">
+                            <div class="fw-bold text-dark">${group.machineName} <span class="badge bg-light text-dark border border-dark">${group.machineId}</span></div>
+                            <div class="small text-muted">${group.task} ${group.notes ? `| <span class="text-muted fw-normal">หมายเหตุ: ${group.notes}</span>` : ''}</div>
+                        </td>`;
+                    
+                    for(let i=1; i<=12; i++) {
+                        let ticket = group.months[i];
+                        html += `<td style="width: 60px;">`;
+                        if (ticket) {
+                            if (ticket.status === "เสร็จสิ้น") {
+                                html += `<div class="badge bg-success-neo badge-status cursor-pointer p-2 w-100" onclick="viewDetails('${ticket.id}')"><i class="bi bi-check-circle"></i> Done</div>`;
+                            } else if (ticket.status === "รอทำ PM") {
+                                if (userLevel === 5) {
+                                    html += `<button class="btn-neo btn-neo-dark btn-sm w-100 py-1 px-1 mb-1" style="font-size:0.75rem;" onclick="openActualModal('${ticket.id}')"><i class="bi bi-wrench"></i> ทำงาน</button>`;
+                                    html += `<div class="badge bg-warning-neo badge-status cursor-pointer p-1 w-100" onclick="cancelPlan('${ticket.id}')" title="คลิกเพื่อยกเลิกแผน" style="font-size:0.7rem;"><i class="bi bi-x-circle"></i> ยกเลิก</div>`;
+                                } else if (userLevel === 3 || userLevel === 7 || userLevel === 8) {
+                                    html += `<button class="btn-neo btn-neo-dark btn-sm w-100 py-1 px-1" style="font-size:0.75rem;" onclick="openActualModal('${ticket.id}')"><i class="bi bi-wrench"></i> ทำงาน</button>`;
+                                } else {
+                                    html += `<div class="badge bg-warning-neo badge-status p-2 w-100"><i class="bi bi-clock"></i> Plan</div>`;
+                                }
+                            }
+                        } else {
+                            if (userLevel === 5 && group.baseId) {
+                                html += `<input class="form-check-input pm-checkbox" type="checkbox" data-id="${group.baseId}" data-month="${i}">`;
+                            } else {
+                                html += `<span class="text-muted">-</span>`;
+                            }
+                        }
+                        html += `</td>`;
+                    }
+                    html += `</tr>`;
+                });
+
+                html += `</tbody></table></div></div>`;
+                return html;
+            }
+
+            let finalHTML = "";
+            if (selectedDept === "all") {
+                finalHTML += buildTableSection(maintMap, "แผนงาน PM - แผนกซ่อมบำรุง (Maintenance)", "bi bi-gear-wide-connected");
+                finalHTML += buildTableSection(engineMap, "แผนงาน PM - แผนกห้องเครื่อง (Engine Room)", "bi bi-lightning-charge-fill");
+            } else if (selectedDept === "แผนกซ่อมบำรุง") {
+                finalHTML += buildTableSection(maintMap, "แผนงาน PM - แผนกซ่อมบำรุง (Maintenance)", "bi bi-gear-wide-connected");
+            } else if (selectedDept === "แผนกห้องเครื่อง") {
+                finalHTML += buildTableSection(engineMap, "แผนงาน PM - แผนกห้องเครื่อง (Engine Room)", "bi bi-lightning-charge-fill");
+            }
+
+            if (userLevel === 5 && finalHTML.indexOf('pm-checkbox') !== -1) {
+                finalHTML += `<button class="btn-neo btn-neo-dark w-100 py-3 fs-5 mb-4" onclick="submitBulkPlan()"><i class="bi bi-save me-2"></i> บันทึกแผนงานทั้งหมด (Save All)</button>`;
+            }
+
+            container.innerHTML = finalHTML;
+        }
+
+        function submitBulkPlan() {
+            const checkboxes = document.querySelectorAll('.pm-checkbox');
+            let planMap = {}; 
+            
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    const id = cb.getAttribute('data-id');
+                    const month = parseInt(cb.getAttribute('data-month'));
+                    if (!planMap[id]) planMap[id] = [];
+                    planMap[id].push(month);
+                }
+            });
+
+            const plans = Object.keys(planMap).map(id => ({ id: id, months: planMap[id] }));
+
+            if (plans.length === 0) {
+                alert("กรุณาติ๊กเลือกอย่างน้อย 1 เดือน");
+                return;
+            }
+
+            if(!confirm(`ยืนยันการจัดแผนงานทั้งหมด ${plans.length} รายการเครื่องจักร?`)) return;
+
+            document.getElementById('pmList').innerHTML = '<div class="text-center p-5"><div class="spinner-border text-dark"></div><p class="mt-2">กำลังบันทึกแผนงานและสร้างตั๋ว...</p></div>';
+
+            google.script.run.withSuccessHandler(res => { 
+                alert(res.message); loadPMs(); 
+            }).updatePMPlanBulk(plans, currentLogin, currentName);
+        }
+
+        function cancelPlan(id) {
+            if(!confirm(`ยืนยันการยกเลิกแผน PM รหัส ${id}?`)) return;
+            
+            document.getElementById('pmList').innerHTML = '<div class="text-center p-5"><div class="spinner-border text-dark"></div><p class="mt-2">กำลังยกเลิกแผน...</p></div>';
+            
+            google.script.run.withSuccessHandler(res => { 
+                alert(res.message); loadPMs(); 
+            }).cancelPMPlan(id, currentLogin);
+        }
+
+        // --- Execution Functions ---
+        function openActualModal(id) {
+            document.getElementById('modalTicketId').value = id;
+            document.getElementById('modalFile').value = '';
+            document.getElementById('modalNote').value = '';
+            document.getElementById('modalStatus').innerHTML = '';
+            document.getElementById('modalSaveBtn').disabled = false;
+            actualModalInstance.show();
+        }
+
+        function saveActual() {
+            const id = document.getElementById('modalTicketId').value;
+            const note = document.getElementById('modalNote').value;
+            const fileInput = document.getElementById('modalFile').files[0];
+            const btn = document.getElementById('modalSaveBtn');
+            const statusBox = document.getElementById('modalStatus');
+
+            btn.disabled = true;
+            statusBox.innerHTML = '<div class="spinner-border spinner-border-sm text-success me-2"></div> กำลังอัปโหลดและบันทึก...';
+
+            const sendData = (fileBase64) => {
+                const fileData = fileBase64 ? { base64: fileBase64, mimeType: fileInput.type, fileName: fileInput.name } : null;
+                google.script.run.withSuccessHandler(res => { 
+                    actualModalInstance.hide();
+                    alert(res.message); 
+                    loadPMs(); 
+                }).withFailureHandler(err => {
+                    statusBox.innerHTML = `<div class="text-danger">❌ Error: ${err}</div>`;
+                    btn.disabled = false;
+                }).updatePMActual_Full(id, note, fileData, currentLogin, currentName);
+            };
+
+            if (fileInput) {
+                const reader = new FileReader();
+                reader.onload = function() { sendData(reader.result.split(',')[1]); };
+                reader.readAsDataURL(fileInput);
+            } else { sendData(null); }
+        }
+
+        function viewDetails(id) {
+            const ticket = globalPMs.find(t => t.id === id);
+            if(!ticket) return;
+
+            document.getElementById('viewTicketId').innerText = ticket.id;
+            document.getElementById('viewActualBy').innerText = ticket.actualBy || '-';
+            document.getElementById('viewActualDate').innerText = ticket.actualDate || '-';
+            document.getElementById('viewNote').innerText = ticket.notes || '-';
+            
+            const imgContainer = document.getElementById('viewImageContainer');
+            if (ticket.imageUrl) {
+                imgContainer.innerHTML = `<img src="${ticket.imageUrl}" class="img-fluid rounded border border-2 border-dark" style="max-height: 300px; box-shadow: 4px 4px 0px var(--neo-dark);">`;
+            } else {
+                imgContainer.innerHTML = `<div class="p-4 border border-2 border-dark rounded bg-light text-muted">ไม่มีรูปภาพประกอบ</div>`;
+            }
+
+            viewModalInstance.show();
+        }
+
+        // --- functions สำหรับลงทะเบียนเครื่องจักร/แผนงาน PM ใหม่ ---
+        function openRegisterModal() {
+            document.getElementById('regMachineId').value = '';
+            document.getElementById('regMachineName').value = '';
+            document.getElementById('regTask').value = '';
+            document.getElementById('regRemark').value = '';
+            document.getElementById('regDept').value = 'แผนกซ่อมบำรุง';
+            document.getElementById('regStatus').innerHTML = '';
+            document.getElementById('regSaveBtn').disabled = false;
+            registerModalInstance.show();
+        }
+
+        function saveRegistration() {
+            const machineId = document.getElementById('regMachineId').value.trim();
+            const machineName = document.getElementById('regMachineName').value.trim();
+            const task = document.getElementById('regTask').value.trim();
+            const remark = document.getElementById('regRemark').value.trim();
+            const dept = document.getElementById('regDept').value;
+            const btn = document.getElementById('regSaveBtn');
+            const statusBox = document.getElementById('regStatus');
+
+            if (!machineId || !machineName || !task) {
+                alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
+                return;
+            }
+
+            btn.disabled = true;
+            statusBox.innerHTML = '<div class="spinner-border spinner-border-sm text-success me-2"></div> กำลังบันทึกข้อมูลเครื่องจักร...';
+
+            google.script.run.withSuccessHandler(res => {
+                if (res.success) {
+                    registerModalInstance.hide();
+                    alert(res.message);
+                    loadPMs();
+                } else {
+                    statusBox.innerHTML = `<div class="text-danger">❌ ${res.message}</div>`;
+                    btn.disabled = false;
+                }
+            }).withFailureHandler(err => {
+                statusBox.innerHTML = `<div class="text-danger">❌ Error: ${err.message}</div>`;
+                btn.disabled = false;
+            }).registerPMDevice(machineId, machineName, task, remark, dept, currentLogin, currentName);
+        }
+
+        function filterPMs() {
+            renderPMs();
+        }
+    </script>
+</body>
+</html>

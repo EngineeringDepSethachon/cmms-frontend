@@ -1,0 +1,895 @@
+<!-- ระบบคลังอะไหล่ (Stock Inventory & Stock Card System) -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คลังอะไหล่ (Inventory & Stock Card)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- DataTables สำหรับจัดการตาราง -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <style>
+        :root {
+            --neo-dark: #191A23;
+            --neo-light: #F4F5F7;
+            --neo-green: #B9FF66;
+            --neo-blue: #00D1FF;
+            --neo-yellow: #FFD166;
+            --neo-red: #FF6B6B;
+            --neo-purple: #9D4EDD;
+            --neo-white: #FFFFFF;
+            --border-width: 2px;
+            --shadow-depth: 4px;
+        }
+
+        body { 
+            background-color: #F8F9FA; 
+            font-family: 'Sarabun', sans-serif; 
+            color: var(--neo-dark);
+            min-height: 100vh;
+        }
+
+        /* Neo-Brutalist Header */
+        .system-header { 
+            background-color: var(--neo-green); 
+            color: var(--neo-dark); 
+            padding: 15px 0; 
+            border-bottom: 3px solid var(--neo-dark); 
+            box-shadow: 0 4px 0 var(--neo-dark);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-brand {
+            font-weight: 800;
+            font-size: 1.45rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* User Badge */
+        .user-info-badge {
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+        }
+
+        /* Neo-Brutalist Buttons */
+        .btn-neo {
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 8px;
+            font-weight: 700;
+            font-family: 'Prompt', sans-serif;
+            padding: 7px 15px;
+            box-shadow: 3px 3px 0px var(--neo-dark);
+            transition: all 0.1s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-neo:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px var(--neo-dark);
+            color: var(--neo-dark);
+        }
+        .btn-neo-green { background-color: var(--neo-green); }
+        .btn-neo-green:hover { background-color: #a6f54a; }
+        
+        .btn-neo-dark { background-color: var(--neo-dark); color: var(--neo-white); }
+        .btn-neo-dark:hover { color: var(--neo-green); background-color: var(--neo-dark); }
+        
+        .btn-neo-blue { background-color: var(--neo-blue); color: var(--neo-dark); }
+        .btn-neo-blue:hover { background-color: #00bce6; }
+
+        /* Action Buttons within table */
+        .btn-action-in {
+            background-color: var(--neo-green);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            box-shadow: 2px 2px 0 var(--neo-dark);
+            transition: all 0.1s ease;
+        }
+        .btn-action-in:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 var(--neo-dark);
+            background-color: #a6f54a;
+        }
+
+        .btn-action-out {
+            background-color: var(--neo-red);
+            color: var(--neo-white);
+            border: var(--border-width) solid var(--neo-dark);
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            box-shadow: 2px 2px 0 var(--neo-dark);
+            transition: all 0.1s ease;
+        }
+        .btn-action-out:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 var(--neo-dark);
+            color: var(--neo-white);
+            background-color: #e65555;
+        }
+
+        .btn-action-card {
+            background-color: var(--neo-blue);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            box-shadow: 2px 2px 0 var(--neo-dark);
+            transition: all 0.1s ease;
+        }
+        .btn-action-card:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 var(--neo-dark);
+            background-color: #00bce6;
+        }
+
+        .btn-action-edit {
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            box-shadow: 2px 2px 0 var(--neo-dark);
+            transition: all 0.1s ease;
+        }
+        .btn-action-edit:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 var(--neo-dark);
+            background-color: var(--neo-yellow);
+        }
+
+        /* Tables & Cards */
+        .neo-card {
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 14px;
+            box-shadow: 5px 5px 0px var(--neo-dark);
+            background: var(--neo-white);
+            overflow: hidden;
+        }
+        .table-neo {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table-neo th {
+            background-color: var(--neo-dark) !important;
+            color: var(--neo-white) !important;
+            border-color: var(--neo-dark);
+            font-family: 'Prompt', sans-serif;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+        .table-neo td {
+            border-color: #e0e0e0;
+            vertical-align: middle;
+        }
+        
+        .badge-warning-neo {
+            background-color: var(--neo-yellow);
+            color: var(--neo-dark);
+            border: 2px solid var(--neo-dark);
+            font-weight: 800;
+            box-shadow: 2px 2px 0 var(--neo-dark);
+        }
+
+        .badge-normal-neo {
+            background-color: var(--neo-green);
+            color: var(--neo-dark);
+            border: 2px solid var(--neo-dark);
+            font-weight: 800;
+            box-shadow: 2px 2px 0 var(--neo-dark);
+        }
+        
+        .modal-content-neo {
+            border: 3px solid var(--neo-dark);
+            border-radius: 14px;
+            box-shadow: 7px 7px 0px var(--neo-dark);
+        }
+        .form-control-neo, .form-select-neo {
+            border: 2px solid var(--neo-dark);
+            border-radius: 8px;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+        .form-control-neo:focus, .form-select-neo:focus {
+            box-shadow: 4px 4px 0px var(--neo-green);
+            border-color: var(--neo-dark);
+            outline: none;
+        }
+
+        /* Stock Card Timeline Styling */
+        .badge-in {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .badge-out {
+            background-color: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <!-- หัวกระดาษของระบบ -->
+    <header class="system-header border-bottom border-3 border-dark mb-4">
+        <div class="container-fluid px-md-4 d-flex justify-content-between align-items-center">
+            <div class="header-brand fw-bold fs-4 text-dark" onclick="window.location.href='Home.html'">
+                <i class="bi bi-tools me-2 fs-2"></i> <span class="d-none d-sm-inline">CMMS System</span><span class="d-inline d-sm-none">CMMS</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="user-info-badge d-none d-lg-block fw-bold bg-white text-dark border border-2 border-dark rounded px-3 py-2" style="box-shadow: 2px 2px 0 var(--neo-dark);">
+                    <i class="bi bi-person-badge-fill me-1"></i> <span id="topUserName">-</span> | <span id="topUserLevelBadge">Lvl</span>
+                </div>
+                <a href="Home.html" class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);"><i class="bi bi-house-door"></i><span class="d-none d-md-inline ms-1"> Home</span></a>
+                <button class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);" onclick="loadInventory()"><i class="bi bi-arrow-clockwise"></i></button>
+                <button class="btn btn-dark border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 #fff;" onclick="logout()"><i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline ms-1"> Logout</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid py-2 px-md-4 mb-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 px-2">
+            <div>
+                <h2 class="fw-bold text-dark mb-0" style="font-family:'Prompt', sans-serif;">
+                    <i class="bi bi-box-seam me-2"></i>คลังอะไหล่ <span class="fs-5 fw-normal text-muted" style="font-family:'Sarabun', sans-serif;">Stock Inventory & Stock Card</span>
+                </h2>
+                <div class="text-muted small">ระบบจัดการสต๊อก รับเข้า เบิกออก และตรวจสอบบัญชีคุมอะไหล่ (Stock Card)</div>
+            </div>
+            <div class="d-flex gap-2" id="actionButtonsContainer">
+                <button id="btnAddNew" class="btn-neo btn-neo-dark" onclick="openAddModal()" style="display:none;">
+                    <i class="bi bi-plus-circle-fill text-warning"></i> เพิ่มรายการอะไหล่
+                </button>
+            </div>
+        </div>
+
+        <!-- กล่องตารางหลัก -->
+        <div class="neo-card p-3">
+            <div class="table-responsive">
+                <table id="inventoryTable" class="table table-bordered table-hover table-neo w-100 mb-0 text-center align-middle">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 200px;" class="text-start">ชื่ออะไหล่</th>
+                            <th style="min-width: 120px;">หมวดหมู่</th>
+                            <th style="min-width: 110px;">คงเหลือ</th>
+                            <th style="min-width: 90px;">หน่วยนับ</th>
+                            <th style="min-width: 100px;">จุดสั่งซื้อ (Min)</th>
+                            <th style="min-width: 130px;">สถานที่เก็บ</th>
+                            <th style="min-width: 250px;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryBody">
+                        <tr><td colspan="7" class="text-center py-4">กำลังโหลดข้อมูลอะไหล่...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Modal: รับเข้า / เบิกออก (IN / OUT) ================= -->
+    <div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-content-neo">
+                <div class="modal-header border-bottom border-dark border-2" id="actionModalHeader">
+                    <h5 class="modal-title fw-bold" id="actionModalTitle" style="font-family:'Prompt', sans-serif;">ทำรายการสต๊อก</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="actionType">
+                    <input type="hidden" id="actionItemId">
+                    <input type="hidden" id="actionItemName">
+                    
+                    <div class="mb-3 text-center p-3 bg-light rounded border border-2 border-dark" style="box-shadow: 2px 2px 0 var(--neo-dark);">
+                        <div class="small text-muted fw-bold">รายการอะไหล่</div>
+                        <h4 class="fw-bold text-dark mb-1" id="dispItemName">-</h4>
+                        <div class="small text-secondary mb-2" id="dispItemCat">-</div>
+                        <div class="d-flex justify-content-center align-items-center gap-2">
+                            <span class="small fw-bold">คงเหลือปัจจุบัน:</span>
+                            <span id="dispCurrentQty" class="badge bg-dark fs-6 px-3 py-1">0</span>
+                            <span id="dispUnit" class="fw-bold text-dark"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">จำนวนที่ต้องการทำรายการ <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control form-control-neo" id="actionQty" min="1" placeholder="ระบุจำนวน" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">รหัสใบงานอ้างอิง (ถ้ามี)</label>
+                        <input type="text" class="form-control form-control-neo" id="actionRef" placeholder="เช่น REP-2608-1234 หรือ PM-001">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">หมายเหตุ / เหตุผลการเบิก</label>
+                        <textarea class="form-control form-control-neo" id="actionRemarks" rows="2" placeholder="ระบุรายละเอียดเพิ่มเติม..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-dark border-2 bg-light">
+                    <button type="button" class="btn-neo" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn-neo btn-neo-dark" id="btnSubmitAction" onclick="submitAction()">
+                        <i class="bi bi-check-circle-fill"></i> ยืนยัน
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Modal: Stock Card (ประวัติการรับเข้า-เบิกออก) ================= -->
+    <div class="modal fade" id="stockCardModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content modal-content-neo">
+                <div class="modal-header border-bottom border-dark border-2" style="background-color: var(--neo-blue);">
+                    <h5 class="modal-title fw-bold text-dark" style="font-family:'Prompt', sans-serif;">
+                        <i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>บัตรคุมสต๊อก (Stock Card)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- สรุปข้อมูลอะไหล่ -->
+                    <div class="p-3 bg-light rounded border border-2 border-dark mb-4" style="box-shadow: 3px 3px 0 var(--neo-dark);">
+                        <div class="row align-items-center">
+                            <div class="col-md-7">
+                                <h4 class="fw-bold text-dark mb-1" id="scItemName">-</h4>
+                                <div class="small text-muted">
+                                    หมวดหมู่: <span class="fw-bold text-dark" id="scItemCat">-</span> | 
+                                    สถานที่เก็บ: <span class="fw-bold text-dark" id="scItemLoc">-</span>
+                                </div>
+                            </div>
+                            <div class="col-md-5 text-md-end mt-2 mt-md-0">
+                                <span class="small fw-bold text-muted me-1">คงเหลือปัจจุบัน:</span>
+                                <span class="badge bg-success fs-5 px-3 py-2 border border-dark" id="scCurrentQty">0</span>
+                                <span class="fw-bold text-dark ms-1" id="scUnit">ชิ้น</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ตารางประวัติ Log -->
+                    <h6 class="fw-bold text-dark mb-2" style="font-family:'Prompt', sans-serif;">
+                        <i class="bi bi-clock-history me-1"></i> ประวัติรายการรับเข้า - เบิกออก
+                    </h6>
+                    <div class="table-responsive border border-2 border-dark rounded" style="max-height: 380px;">
+                        <table class="table table-sm table-bordered table-striped table-hover mb-0 text-center align-middle" style="font-size: 0.88rem;">
+                            <thead class="table-dark sticky-top">
+                                <tr>
+                                    <th style="min-width: 140px;">วัน-เวลา</th>
+                                    <th style="min-width: 95px;" class="bg-success text-white">รับเข้า (IN)</th>
+                                    <th style="min-width: 95px;" class="bg-danger text-white">เบิกออก (OUT)</th>
+                                    <th style="min-width: 100px;" class="bg-primary text-white">คงเหลือ</th>
+                                    <th style="min-width: 100px;">ผู้ทำรายการ</th>
+                                    <th style="min-width: 110px;">ใบงานอ้างอิง</th>
+                                    <th style="min-width: 130px;" class="text-start">หมายเหตุ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockCardLogsBody">
+                                <tr><td colspan="7" class="text-center py-4">กำลังดึงข้อมูล Stock Card...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-dark border-2 bg-light">
+                    <button type="button" class="btn-neo btn-neo-dark" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Modal: เพิ่ม / แก้ไข รายการอะไหล่ ================= -->
+    <div class="modal fade" id="itemModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-content-neo">
+                <div class="modal-header border-bottom border-dark border-2" style="background-color: var(--neo-green);">
+                    <h5 class="modal-title fw-bold text-dark" id="itemModalTitle" style="font-family:'Prompt', sans-serif;">เพิ่มรายการอะไหล่ใหม่</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="isNewItem" value="1">
+                    <input type="hidden" id="itemCode"> <!-- รหัสเก็บภายในระบบ -->
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">ชื่ออะไหล่ / อุปกรณ์ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-neo" id="itemName" placeholder="เช่น มอเตอร์ไฟฟ้า 2HP 3 เฟส" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small">หมวดหมู่ <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-neo" id="itemCat" required>
+                                <option value="ระบบน้ำ">🚰 ระบบน้ำ</option>
+                                <option value="ระบบไฟ">⚡ ระบบไฟ</option>
+                                <option value="เครื่องจักร">⚙️ เครื่องจักร</option>
+                                <option value="อะไหล่สิ้นเปลือง">📦 อะไหล่สิ้นเปลือง</option>
+                                <option value="อื่นๆ">📝 อื่นๆ</option>
+                            </select>
+                            <div class="form-text small text-muted">ระบบจะรันรหัสอัตโนมัติตามหมวดที่เลือก</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small">หน่วยนับ <span class="text-danger">*</span></label>
+                            <!-- โหมดเพิ่มใหม่: dropdown -->
+                            <select class="form-select form-select-neo" id="itemUnitSelect" required>
+                                <option value="ชิ้น">ชิ้น</option>
+                                <option value="ตัว">ตัว</option>
+                                <option value="อัน">อัน</option>
+                                <option value="ชุด">ชุด</option>
+                                <option value="เมตร">เมตร</option>
+                                <option value="ม้วน">ม้วน</option>
+                                <option value="ลิตร">ลิตร</option>
+                                <option value="แกลลอน">แกลลอน</option>
+                                <option value="ถัง">ถัง</option>
+                                <option value="กิโลกรัม">กิโลกรัม (กก.)</option>
+                                <option value="กล่อง">กล่อง</option>
+                                <option value="แพ็ค">แพ็ค</option>
+                                <option value="เส้น">เส้น</option>
+                                <option value="แผ่น">แผ่น</option>
+                                <option value="คู่">คู่</option>
+                                <option value="หลอด">หลอด</option>
+                                <option value="หน่วย">หน่วย</option>
+                            </select>
+                            <!-- โหมดแก้ไข: แสดงอ่านอย่างเดียว (ไม่ให้เปลี่ยน) -->
+                            <input type="text" class="form-control form-control-neo" id="itemUnitReadonly" readonly style="display:none; background-color: #e9ecef; cursor: not-allowed;">
+                            <input type="hidden" id="itemUnitHidden">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small">จุดสั่งซื้อต่ำสุด (Min/Reorder) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control form-control-neo" id="itemMin" value="5" min="0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small">สถานที่จัดเก็บ</label>
+                            <input type="text" class="form-control form-control-neo" id="itemLoc" placeholder="เช่น ตู้ A-02 ชั้น 3">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-dark border-2 bg-light">
+                    <button type="button" class="btn-neo" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn-neo btn-neo-green" id="btnSubmitItem" onclick="submitItem()">
+                        <i class="bi bi-save-fill"></i> บันทึกข้อมูล
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userRole = localStorage.getItem('userRole');
+        const userLevel = parseInt(localStorage.getItem('userLevel') || 0);
+        const userName = localStorage.getItem('userName') || 'Unknown';
+        
+        // ตรวจสอบสิทธิ์: Level 1, 5 (Full Access), Level 6 (Issue Only)
+        // ตรวจสอบสิทธิ์: Level 1 (Staff), Level 5 (Admin), Level 6 (Stock Only), Level 7 (ช่างซ่อมบำรุง), Level 8 (ช่างห้องเครื่อง)
+        if (!userRole || (userLevel !== 1 && userLevel !== 5 && userLevel !== 6 && userLevel !== 7 && userLevel !== 8)) {
+            alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+            window.location.href = "Home.html";
+        }
+
+        let dataTable = null;
+        let inventoryData = [];
+        
+        // Modal Instances (Single-instance เพื่อป้องกันปัญหา backdrop และ event ค้าง)
+        let actionModalInstance = null;
+        let itemModalInstance = null;
+        let stockCardModalInstance = null;
+
+        window.onload = function() {
+            document.getElementById('topUserName').innerText = userName;
+            document.getElementById('topUserLevelBadge').innerText = 'Level ' + userLevel;
+            
+            // แสดงปุ่มเพิ่มอะไหล่เฉพาะ Level 1, 5 และ 7
+            if (userLevel === 1 || userLevel === 5 || userLevel === 7) {
+                document.getElementById('btnAddNew').style.display = 'inline-flex';
+            }
+            
+            // เริ่มต้น Bootstrap Modal Instances ครั้งเดียว
+            actionModalInstance = new bootstrap.Modal(document.getElementById('actionModal'));
+            itemModalInstance = new bootstrap.Modal(document.getElementById('itemModal'));
+            stockCardModalInstance = new bootstrap.Modal(document.getElementById('stockCardModal'));
+
+            loadInventory();
+        };
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "Login.html?target=Inventory.html";
+        }
+
+        function loadInventory() {
+            document.getElementById('inventoryBody').innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-dark"></div><div class="mt-2 fw-bold">กำลังโหลดข้อมูล...</div></td></tr>';
+            
+            if (dataTable) {
+                dataTable.destroy();
+                dataTable = null;
+            }
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res && res.success) {
+                        inventoryData = res.data || [];
+                        renderTable(inventoryData);
+                    } else {
+                        alert(res ? res.message : 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
+                        document.getElementById('inventoryBody').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger fw-bold">❌ เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    alert('เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ: ' + err.message);
+                    document.getElementById('inventoryBody').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger fw-bold">❌ การเชื่อมต่อขัดข้อง</td></tr>';
+                })
+                .getInventoryItems();
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('inventoryBody');
+            tbody.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 fw-bold text-muted">📭 ไม่มีข้อมูลอะไหล่ในระบบ</td></tr>';
+                return;
+            }
+
+            let htmlRows = '';
+            data.forEach((item, index) => {
+                // คำนวณ Badge คงเหลือ (เตือน Low Stock)
+                let qtyBadge = `<span class="badge badge-normal-neo px-3 py-1 fs-6">${item.qty}</span>`;
+                if (item.qty <= item.reorderPoint) {
+                    qtyBadge = `<span class="badge badge-warning-neo px-3 py-1 fs-6" title="ถึงจุดสั่งซื้อ">${item.qty} <i class="bi bi-exclamation-triangle-fill text-danger"></i></span>`;
+                }
+
+                // ปุ่มจัดการ (รับเข้า / เบิกออก / Stock Card / แก้ไข)
+                let actionButtons = '<div class="d-flex flex-wrap justify-content-center gap-1">';
+                
+                if (userLevel === 1 || userLevel === 5 || userLevel === 7) {
+                    actionButtons += `<button type="button" class="btn-action-in" onclick="openActionModal('IN', '${item.id}')"><i class="bi bi-box-arrow-in-down"></i> รับเข้า</button>`;
+                }
+                actionButtons += `<button type="button" class="btn-action-out" onclick="openActionModal('OUT', '${item.id}')"><i class="bi bi-box-arrow-up"></i> เบิกออก</button>`;
+                
+                // ปุ่ม Stock Card (เข้าถึงได้ทุกคนที่มีสิทธิ์หน้านี้)
+                actionButtons += `<button type="button" class="btn-action-card" onclick="openStockCardModal('${item.id}')"><i class="bi bi-card-checklist"></i> Card</button>`;
+
+                if (userLevel === 1 || userLevel === 5) {
+                    actionButtons += `<button type="button" class="btn-action-edit" onclick="openEditModal('${item.id}')" title="แก้ไข"><i class="bi bi-pencil"></i></button>`;
+                }
+                actionButtons += '</div>';
+
+                htmlRows += `
+                    <tr>
+                        <td class="text-start fw-bold text-dark">${item.name || '-'}</td>
+                        <td><span class="badge bg-light text-dark border border-dark">${item.category || '-'}</span></td>
+                        <td>${qtyBadge}</td>
+                        <td class="fw-bold">${item.unit || '-'}</td>
+                        <td class="text-muted">${item.reorderPoint || 0}</td>
+                        <td class="small">${item.location || '-'}</td>
+                        <td>${actionButtons}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = htmlRows;
+
+            // เริ่มต้น DataTable
+            dataTable = $('#inventoryTable').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json' },
+                order: [[0, 'asc']], // เรียงตามชื่ออะไหล่
+                pageLength: 25,
+                columnDefs: [
+                    { orderable: false, targets: 6 } // คอลัมน์จัดการไม่ต้อง sort
+                ]
+            });
+        }
+
+        // ================= ACTION (IN/OUT) ================= //
+        function openActionModal(type, itemId) {
+            const item = inventoryData.find(i => String(i.id).trim() === String(itemId).trim());
+            if (!item) {
+                alert('ไม่พบข้อมูลอะไหล่ที่เลือก (ID: ' + itemId + ')');
+                return;
+            }
+
+            document.getElementById('actionType').value = type;
+            document.getElementById('actionItemId').value = item.id;
+            document.getElementById('actionItemName').value = item.name;
+            
+            document.getElementById('dispItemName').innerText = item.name;
+            document.getElementById('dispItemCat').innerText = 'หมวดหมู่: ' + item.category;
+            document.getElementById('dispCurrentQty').innerText = item.qty;
+            document.getElementById('dispUnit').innerText = item.unit;
+
+            document.getElementById('actionQty').value = '';
+            document.getElementById('actionRef').value = '';
+            document.getElementById('actionRemarks').value = '';
+
+            const header = document.getElementById('actionModalHeader');
+            const title = document.getElementById('actionModalTitle');
+            const btn = document.getElementById('btnSubmitAction');
+
+            if (type === 'IN') {
+                header.style.backgroundColor = 'var(--neo-green)';
+                title.innerHTML = '<i class="bi bi-box-arrow-in-down me-2"></i>รับเข้าสต๊อก (Stock In)';
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>ยืนยันรับเข้า';
+                btn.className = 'btn-neo btn-neo-green';
+            } else {
+                header.style.backgroundColor = 'var(--neo-red)';
+                title.innerHTML = '<i class="bi bi-box-arrow-up me-2 text-white"></i><span class="text-white">เบิกออกสต๊อก (Stock Out)</span>';
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>ยืนยันเบิกออก';
+                btn.className = 'btn-neo btn-neo-dark';
+            }
+
+            actionModalInstance.show();
+        }
+
+        function submitAction() {
+            const type = document.getElementById('actionType').value;
+            const id = document.getElementById('actionItemId').value;
+            const name = document.getElementById('actionItemName').value;
+            const qty = parseInt(document.getElementById('actionQty').value);
+            const ref = document.getElementById('actionRef').value.trim();
+            const remarks = document.getElementById('actionRemarks').value.trim();
+
+            if (!qty || qty <= 0) {
+                alert('⚠️ กรุณากรอกจำนวนที่ต้องการทำรายการให้ถูกต้อง (มากกว่า 0)');
+                return;
+            }
+
+            const currentQty = parseInt(document.getElementById('dispCurrentQty').innerText);
+            if (type === 'OUT' && qty > currentQty) {
+                alert('⚠️ จำนวนสต๊อกคงเหลือไม่เพียงพอสำหรับการเบิกออก (คงเหลือปัจจุบัน: ' + currentQty + ')');
+                return;
+            }
+
+            if (!confirm(`ยืนยันการ ${type === 'IN' ? 'รับเข้า' : 'เบิกออก'} [${name}] จำนวน ${qty} รายการ?`)) return;
+
+            const btn = document.getElementById('btnSubmitAction');
+            const orgText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังบันทึก...';
+            btn.disabled = true;
+
+            const payload = {
+                action: type,
+                itemId: id,
+                itemName: name,
+                qty: qty,
+                user: userName,
+                refId: ref,
+                remarks: remarks
+            };
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    btn.innerHTML = orgText;
+                    btn.disabled = false;
+                    
+                    if (res && res.success) {
+                        alert(res.message);
+                        actionModalInstance.hide();
+                        loadInventory(); // Refresh ตาราง
+                    } else {
+                        alert(res ? res.message : 'เกิดข้อผิดพลาดในการบันทึก');
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    btn.innerHTML = orgText;
+                    btn.disabled = false;
+                    alert('❌ ข้อผิดพลาด: ' + err.message);
+                })
+                .processInventoryAction(payload);
+        }
+
+        // ================= STOCK CARD (บัตรคุมสต๊อก) ================= //
+        function openStockCardModal(itemId) {
+            const item = inventoryData.find(i => String(i.id).trim() === String(itemId).trim());
+            if (!item) return;
+
+            // กำหนดข้อมูลหัวบัตร
+            document.getElementById('scItemName').innerText = item.name;
+            document.getElementById('scItemCat').innerText = item.category;
+            document.getElementById('scItemLoc').innerText = item.location;
+            document.getElementById('scCurrentQty').innerText = item.qty;
+            document.getElementById('scUnit').innerText = item.unit;
+
+            const logsBody = document.getElementById('stockCardLogsBody');
+            logsBody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-primary spinner-border-sm me-2"></div> กำลังดึงข้อมูลประวัติ...</td></tr>';
+
+            stockCardModalInstance.show();
+
+            // ดึงข้อมูลประวัติจาก Backend
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res && res.success) {
+                        renderStockCardLogs(res.logs, item.unit);
+                    } else {
+                        logsBody.innerHTML = `<tr><td colspan="7" class="text-center py-3 text-danger">${res ? res.message : 'ไม่สามารถโหลดประวัติได้'}</td></tr>`;
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    logsBody.innerHTML = `<tr><td colspan="7" class="text-center py-3 text-danger">❌ เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
+                })
+                .getStockCard(itemId);
+        }
+
+        function renderStockCardLogs(logs, unit) {
+            const logsBody = document.getElementById('stockCardLogsBody');
+            
+            if (!logs || logs.length === 0) {
+                logsBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">📭 ยังไม่มีประวัติการรับเข้า - เบิกออก สำหรับรายการนี้</td></tr>';
+                return;
+            }
+
+            let html = '';
+            logs.forEach(log => {
+                const isIN = log.action === 'IN';
+                const inCol = isIN 
+                    ? `<span class="badge bg-success fs-6 px-2 py-1">+${log.qty}</span>` 
+                    : `<span class="text-muted fw-bold">-</span>`;
+                
+                const outCol = !isIN 
+                    ? `<span class="badge bg-danger fs-6 px-2 py-1">-${log.qty}</span>` 
+                    : `<span class="text-muted fw-bold">-</span>`;
+
+                const balanceCol = log.balance !== '-' 
+                    ? `<span class="fw-bold text-primary fs-6">${log.balance}</span> <small class="text-muted">${unit || ''}</small>` 
+                    : `<span class="text-muted">-</span>`;
+
+                html += `
+                    <tr>
+                        <td class="small text-muted">${log.timestamp || '-'}</td>
+                        <td>${inCol}</td>
+                        <td>${outCol}</td>
+                        <td>${balanceCol}</td>
+                        <td class="small fw-bold">${log.user || '-'}</td>
+                        <td><span class="badge bg-light text-dark border">${log.refId || '-'}</span></td>
+                        <td class="small text-start">${log.remarks || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            logsBody.innerHTML = html;
+        }
+
+        // ================= ADD / EDIT ITEM ================= //
+        function openAddModal() {
+            document.getElementById('isNewItem').value = "1";
+            document.getElementById('itemModalTitle').innerHTML = '<i class="bi bi-plus-circle-fill me-2"></i>เพิ่มรายการอะไหล่ใหม่';
+            
+            document.getElementById('itemCode').value = '';
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemCat').value = 'ระบบน้ำ';
+            document.getElementById('itemMin').value = '5';
+            document.getElementById('itemLoc').value = '';
+
+            // โหมดเพิ่มใหม่: แสดง dropdown หน่วยนับ
+            document.getElementById('itemUnitSelect').style.display = 'block';
+            document.getElementById('itemUnitSelect').value = 'ชิ้น';
+            document.getElementById('itemUnitReadonly').style.display = 'none';
+
+            itemModalInstance.show();
+        }
+
+        function openEditModal(itemId) {
+            const item = inventoryData.find(i => String(i.id).trim() === String(itemId).trim());
+            if (!item) return;
+
+            document.getElementById('isNewItem').value = "0";
+            document.getElementById('itemModalTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>แก้ไขรายการอะไหล่';
+            
+            document.getElementById('itemCode').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            
+            // หมวดหมู่ (Category)
+            const catSelect = document.getElementById('itemCat');
+            const targetCat = item.category || 'อื่นๆ';
+            let hasCatOption = false;
+            for (let i = 0; i < catSelect.options.length; i++) {
+                if (catSelect.options[i].value === targetCat) {
+                    hasCatOption = true;
+                    break;
+                }
+            }
+            if (!hasCatOption && targetCat) {
+                const newOpt = document.createElement('option');
+                newOpt.value = targetCat;
+                newOpt.text = targetCat;
+                catSelect.add(newOpt);
+            }
+            catSelect.value = targetCat;
+
+            // หน่วยนับ — โหมดแก้ไข: อ่านอย่างเดียว ไม่ให้เปลี่ยน
+            const targetUnit = item.unit || 'ชิ้น';
+            document.getElementById('itemUnitSelect').style.display = 'none';
+            document.getElementById('itemUnitReadonly').style.display = 'block';
+            document.getElementById('itemUnitReadonly').value = targetUnit;
+            document.getElementById('itemUnitHidden').value = targetUnit;
+
+            document.getElementById('itemMin').value = item.reorderPoint;
+            document.getElementById('itemLoc').value = item.location;
+
+            itemModalInstance.show();
+        }
+
+        function submitItem() {
+            const isNew = document.getElementById('isNewItem').value === "1";
+            const id = document.getElementById('itemCode').value.trim();
+            const name = document.getElementById('itemName').value.trim();
+            const cat = document.getElementById('itemCat').value.trim();
+            // หน่วยนับ: ถ้าเพิ่มใหม่ใช้ dropdown, ถ้าแก้ไขใช้ hidden (ไม่เปลี่ยน)
+            const unit = isNew ? document.getElementById('itemUnitSelect').value.trim() : document.getElementById('itemUnitHidden').value.trim();
+            const min = document.getElementById('itemMin').value;
+            const loc = document.getElementById('itemLoc').value.trim();
+
+            if (!name || !cat || !unit) {
+                alert('⚠️ กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน (ชื่ออะไหล่, หมวดหมู่, หน่วยนับ)');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitItem');
+            const orgText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังบันทึก...';
+            btn.disabled = true;
+
+            const payload = {
+                isNew: isNew,
+                id: id,
+                name: name,
+                category: cat,
+                unit: unit,
+                reorderPoint: min,
+                location: loc
+            };
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    btn.innerHTML = orgText;
+                    btn.disabled = false;
+                    
+                    if (res && res.success) {
+                        alert(res.message);
+                        itemModalInstance.hide();
+                        loadInventory(); // Refresh
+                    } else {
+                        alert(res ? res.message : 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    btn.innerHTML = orgText;
+                    btn.disabled = false;
+                    alert('❌ ข้อผิดพลาด: ' + err.message);
+                })
+                .saveInventoryItem(payload);
+        }
+    </script>
+</body>
+</html>

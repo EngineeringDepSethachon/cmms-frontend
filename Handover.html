@@ -1,0 +1,302 @@
+<!-- หน้าทวนสอบงาน (Handover): สำหรับหน้าแผนกตรวจสอบงานซ่อม (Stage 3.5) -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Handover</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --neo-dark: #191A23;
+            --neo-light: #F3F3F3;
+            --neo-green: #B9FF66;
+            --neo-white: #FFFFFF;
+            --border-width: 2px;
+            --shadow-depth: 4px;
+        }
+
+        body { 
+            background-color: var(--neo-white); 
+            font-family: 'Sarabun', sans-serif; 
+            color: var(--neo-dark);
+        }
+
+        /* Neo-Brutalist Header */
+        .system-header { 
+            background-color: var(--neo-white); 
+            color: var(--neo-dark); 
+            padding: 20px 0; 
+            border-bottom: var(--border-width) solid var(--neo-dark); 
+            margin-bottom: 2rem;
+        }
+
+        .header-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-brand i { margin-right: 10px; color: var(--neo-dark); }
+
+        /* Neo-Brutalist Buttons */
+        .btn-neo {
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 6px 14px;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+            transition: all 0.1s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-neo:hover { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); background-color: var(--neo-green); color: var(--neo-dark); }
+        
+        .btn-neo-dark { background-color: var(--neo-dark); color: var(--neo-white); }
+        .btn-neo-dark:hover { background-color: var(--neo-dark); color: var(--neo-green); }
+
+        .btn-neo-green { background-color: var(--neo-green); color: var(--neo-dark); }
+        .btn-neo-green:hover { background-color: var(--neo-green); transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--neo-dark); }
+
+        /* User Badge */
+        .user-info-badge {
+            background-color: var(--neo-green);
+            color: var(--neo-dark);
+            border: var(--border-width) solid var(--neo-dark);
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+        }
+
+        .verify-card { 
+            border-radius: 12px; 
+            border: var(--border-width) solid var(--neo-dark); 
+            box-shadow: var(--shadow-depth) var(--shadow-depth) 0px var(--neo-dark); 
+            background: var(--neo-white); 
+            transition: transform 0.1s; 
+            margin-bottom: 20px;
+        }
+        .verify-card:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--neo-dark); }
+        .verify-header {
+            background-color: var(--neo-dark);
+            color: var(--neo-white);
+            border-bottom: var(--border-width) solid var(--neo-dark);
+        }
+        .img-preview { 
+            max-height: 200px; 
+            object-fit: contain; 
+            border-radius: 8px; 
+            border: var(--border-width) solid var(--neo-dark);
+            box-shadow: 2px 2px 0px var(--neo-dark);
+        }
+    </style>
+    </head>
+    <body>
+    <!-- หัวกระดาษของระบบ (System Header) -->
+        <header class="system-header border-bottom border-3 border-dark mb-4" style="background-color: var(--neo-green); padding: 15px 0; box-shadow: 0 4px 0 var(--neo-dark); position: relative; z-index: 10;">
+        <div class="container-fluid px-md-4 d-flex justify-content-between align-items-center">
+            <div class="header-brand fw-bold fs-4 text-dark" style="cursor:pointer;" onclick="window.location.href='Home.html'">
+                <i class="bi bi-tools me-2 fs-2"></i> <span class="d-none d-sm-inline">CMMS System</span><span class="d-inline d-sm-none">CMMS</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="user-info-badge d-none d-lg-block fw-bold bg-white text-dark border border-2 border-dark rounded px-3 py-2" style="box-shadow: 2px 2px 0 var(--neo-dark);">
+                    <i class="bi bi-person-badge-fill me-1"></i> <span id="topUserName">-</span> | <span id="topUserDept">-</span>
+                </div>
+                <a href="Home.html" class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);"><i class="bi bi-house-door"></i><span class="d-none d-md-inline ms-1"> Home</span></a>
+                <button class="btn btn-light border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 var(--neo-dark);" onclick="loadJobs()"><i class="bi bi-arrow-clockwise"></i></button>
+                <button class="btn btn-dark border-2 border-dark fw-bold rounded" style="box-shadow: 2px 2px 0 #fff;" onclick="logout()"><i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline ms-1"> Logout</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div id="mainSection" class="container py-2">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">การรับมอบงานซ่อม <span class="text-muted fs-5 fw-normal">(Handover Stage)</span></h2>
+            <p class="text-muted">กรุณาตรวจสอบงานที่วิศวกรรมแจ้งซ่อมเสร็จแล้วของแผนกท่าน และกด "รับมอบงาน" เพื่อส่งต่อให้ QC</p>
+        </div>
+
+        <!-- แถบเมนูสำหรับการจัดการแบบกลุ่ม (Bulk Action) -->
+        <div id="bulkActionBar" class="mb-4 p-3 bg-light rounded border border-2 border-dark d-none" style="box-shadow: 4px 4px 0px var(--neo-dark);">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="form-check m-0">
+                    <input class="form-check-input border-dark" type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" style="transform: scale(1.3); cursor: pointer;">
+                    <label class="form-check-label fw-bold ms-2" for="selectAllCheckbox" style="cursor: pointer;">เลือกทั้งหมด (Select All)</label>
+                </div>
+                <button class="btn-neo btn-neo-green fw-bold py-2 px-4" onclick="submitBulkHandover()">
+                    <i class="bi bi-check-all fs-5 me-1"></i> รับมอบงานที่เลือกทั้งหมด (Bulk Handover)
+                </button>
+            </div>
+        </div>
+
+        <div id="jobList"><div class="text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">⏳ กำลังโหลดรายการรอรับมอบ...</p></div></div>
+    </div>
+
+    <script>
+        const userRole = localStorage.getItem('userRole');
+        const userLevel = parseInt(localStorage.getItem('userLevel') || 0);
+        const currentLogin = localStorage.getItem('userLogin');
+        const currentName = localStorage.getItem('userName');
+        const currentDept = localStorage.getItem('userDept') || ""; 
+
+        if (!userRole || (userLevel !== 2 && userLevel < 5)) { window.location.href = "Login.html?target=Handover.html"; }
+
+        function updateTopNavbar() {
+            document.getElementById('topUserName').innerText = localStorage.getItem('userName') || 'Unknown';
+            if (document.getElementById('topUserDept')) document.getElementById('topUserDept').innerText = localStorage.getItem('userDept') || '-';
+            if (document.getElementById('topUserPos')) document.getElementById('topUserPos').innerText = localStorage.getItem('userPosition') || 'Staff';
+        }
+
+        function logout() { localStorage.clear(); window.location.href = "Login.html?target=Handover.html"; }
+
+        let allTickets = [];
+
+        function loadJobs() {
+            const container = document.getElementById('jobList');
+            container.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">⏳ กำลังโหลดรายการรอรับมอบ...</p></div>';
+
+            google.script.run.withSuccessHandler(d => { 
+                allTickets = d.allTickets; 
+                renderJobs(); 
+            }).withFailureHandler(err => {
+                container.innerHTML = `
+                    <div class="alert alert-danger text-center py-5 shadow-sm bg-white rounded-4">
+                        <i class="bi bi-shield-exclamation fs-1 d-block mb-3"></i>
+                        <h5 class="fw-bold">ไม่สามารถดึงข้อมูลรอรับมอบได้</h5>
+                        <p class="mb-0">${err.message}</p>
+                        <button class="btn btn-outline-danger mt-3" onclick="loadJobs()">ลองใหม่อีกครั้ง</button>
+                    </div>`;
+            }).getDashboardData();
+        }
+
+        function renderJobs() {
+            // กรองงานที่เป็นสถานะ "รอรับมอบงาน" และเป็นของแผนกตัวเอง (เว้นแต่เป็น Level 5 จะเห็นทั้งหมด)
+            let pending = allTickets.filter(t => t.status === "รอรับมอบงาน");
+            if (userLevel < 5 && currentDept) {
+                pending = pending.filter(t => t.ticket.startsWith(currentDept) || t.reqName === currentName); 
+            }
+
+            const container = document.getElementById('jobList');
+            const bulkBar = document.getElementById('bulkActionBar');
+            
+            if (pending.length === 0) {
+                container.innerHTML = '<div class="alert alert-success text-center py-5 shadow-sm bg-white rounded-4">🎉 ไม่มีงานรอรับมอบของแผนกท่านในขณะนี้</div>';
+                bulkBar.classList.add('d-none');
+                return;
+            }
+
+            bulkBar.classList.remove('d-none');
+            document.getElementById('selectAllCheckbox').checked = false;
+            container.innerHTML = '';
+
+            pending.forEach(t => {
+                container.innerHTML += `
+                    <div class="card verify-card p-0 overflow-hidden mb-4 border-0">
+                        <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center">
+                                <input type="checkbox" class="form-check-input job-checkbox border-dark me-3" value="${t.ticket}" style="transform: scale(1.3); cursor: pointer;">
+                                <span class="fs-5"><i class="bi bi-person-check me-2"></i>${t.ticket}</span>
+                            </div>
+                            <span class="badge bg-white text-dark rounded-pill px-3 py-2">รอรับมอบงาน</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-md-5 border-end">
+                                    <h6 class="fw-bold text-muted small text-uppercase mb-3">ภาพเปรียบเทียบ (Before/After)</h6>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6 text-center">
+                                            <div class="small mb-1 text-danger">ก่อนซ่อม</div>
+                                            ${t.imageUrl && t.imageUrl !== '-' ? `<img src="${t.imageUrl}" class="img-preview w-100 shadow-sm border">` : '<div class="p-4 border bg-light small text-center text-muted">ไม่มีรูป</div>'}
+                                        </div>
+                                        <div class="col-6 text-center">
+                                            <div class="small mb-1 text-success">หลังซ่อม</div>
+                                            ${t.completionImageUrl ? `<img src="${t.completionImageUrl}" class="img-preview w-100 shadow-sm border">` : '<div class="p-4 border bg-light small text-center text-muted">ไม่มีรูป</div>'}
+                                        </div>
+                                    </div>
+                                    <div class="p-2 bg-light rounded x-small" style="font-size: 0.75rem;">
+                                        <div class="mb-1"><b>ปัญหาที่พบ:</b> ${t.problem}</div>
+                                        <div class="mb-1"><b>วิธีแก้:</b> ${t.repairMethod}</div>
+                                        <div><b>โน้ตช่าง:</b> ${t.note || '-'}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-7 ps-md-4">
+                                    <h6 class="fw-bold text-warning text-dark mb-3">ลงนามรับมอบงาน</h6>
+                                    <div class="alert alert-secondary py-2 small mb-3">
+                                        <i class="bi bi-info-circle me-1"></i> เมื่อรับมอบแล้ว งานจะถูกส่งต่อไปยัง QC เพื่อปิดจ๊อบ
+                                    </div>
+                                    <textarea id="handover-${t.ticket}" class="form-control mb-3" rows="3" placeholder="ระบุข้อความถึงวิศวกรรมหรือ QC (ถ้ามี)..."></textarea>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-warning text-dark flex-grow-1 fw-bold py-3 shadow-sm" onclick="submitHandover('${t.ticket}', 'รับมอบ')">✅ รับมอบงาน (ส่งต่อให้ QC)</button>
+                                        <button class="btn btn-outline-danger px-4" onclick="submitHandover('${t.ticket}', 'ตีกลับ')">❌ ตีกลับให้ช่างแก้ใหม่</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function toggleSelectAll(masterCb) {
+            document.querySelectorAll('.job-checkbox').forEach(cb => {
+                cb.checked = masterCb.checked;
+            });
+        }
+
+        function submitBulkHandover() {
+            const checkedBoxes = document.querySelectorAll('.job-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                alert("กรุณาเลือกใบงานที่ต้องการรับมอบอย่างน้อย 1 รายการ");
+                return;
+            }
+            if (!confirm(`ยืนยันการรับมอบงานที่เลือกทั้งหมดจำนวน ${checkedBoxes.length} รายการ?`)) return;
+            
+            const ticketIds = Array.from(checkedBoxes).map(cb => cb.value);
+            
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ กำลังบันทึกการรับมอบแบบกลุ่ม...';
+            
+            google.script.run.withSuccessHandler(res => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                alert(res.message);
+                loadJobs();
+            }).withFailureHandler(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                alert("เกิดข้อผิดพลาด: " + err.message);
+            }).bulkHandoverTickets(ticketIds, currentLogin, currentName);
+        }
+
+        function submitHandover(id, action) {
+            if(!confirm(`ยืนยันการ${action}งานรหัส ${id}?`)) return;
+            const hoNote = document.getElementById(`handover-${id}`).value;
+
+            if (action === 'รับมอบ') {
+                const nextStatus = "รอการทวนสอบ (QC)";
+                const progress = 90; 
+                const note = "Supervisor Handover (รับมอบ): " + hoNote;
+                google.script.run.withSuccessHandler(res => { 
+                    alert(res.message); loadJobs(); 
+                }).updateTicketStatus_Full(id, nextStatus, note, "", "", "", "", "", "", "", currentLogin, progress, "", "", "", null, null, currentName);
+            } else {
+                // ตีกลับสร้างใบใหม่
+                google.script.run.withSuccessHandler(res => { 
+                    alert(res.message); loadJobs(); 
+                }).rejectAndCloneTicket(id, "ถูกตีกลับ (โดยหัวหน้าแผนก)", hoNote, currentLogin, currentName);
+            }
+        }
+
+        window.onload = function() { updateTopNavbar(); loadJobs(); };
+    </script>
+</body>
+</html>
