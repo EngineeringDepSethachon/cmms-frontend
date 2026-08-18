@@ -1235,12 +1235,18 @@ function generatePDF(ticketId, authUser) {
     
     var ticket = null;
     for (var i = 1; i < data.length; i++) {
-      if (data[i][1] && data[i][1].toString().trim() === ticketId.toString().trim()) {
+      var colA = data[i][0] ? data[i][0].toString().trim() : "";
+      var colB = data[i][1] ? data[i][1].toString().trim() : "";
+      var targetSearch = ticketId.toString().trim();
+
+      if (colA === targetSearch || colB === targetSearch) {
         var rawImageUrl = data[i][6] ? data[i][6].toString() : ""; 
         var rawCompUrl = data[i][25] ? data[i][25].toString() : ""; 
         
         ticket = {
-          ticket: data[i][1] ? data[i][1].toString() : "", 
+          engTicketId: colA,                          // ✅ Column A: Ticket_ID ({{ticketId}})
+          deptTicketId: colB,                         // ✅ Column B: Dept_Ticket_ID ({{deptId}})
+          ticket: colA || colB, 
           status: data[i][2] ? data[i][2].toString() : "", 
           target: data[i][3] && data[i][3].toString() !== "-" ? data[i][3].toString() : (data[i][4] ? data[i][4].toString() : "-"),
           problem: data[i][5] ? data[i][5].toString() : "", 
@@ -1283,7 +1289,7 @@ function generatePDF(ticketId, authUser) {
 
     // 3. ทำการคัดลอกไฟล์ต้นแบบ (Template) ไปไว้ในโฟลเดอร์ชั่วคราว
     cache.put(ticketId + "_pdf_progress", "กำลังคัดลอกเอกสารต้นแบบ Google Doc (35%)...", 60);
-    var tempFile = templateFile.makeCopy("TEMP_DOC_" + ticket.ticket, folder);
+    var tempFile = templateFile.makeCopy("TEMP_DOC_" + (ticket.engTicketId || ticket.deptTicketId || "Ticket"), folder);
     
     // เปิดไฟล์ Google Doc ชั่วคราวเพื่อเขียนค่าลงตัวแปร
     cache.put(ticketId + "_pdf_progress", "กำลังเปิดไฟล์และแทนที่ข้อความตัวแปร (50%)...", 60);
@@ -1291,12 +1297,20 @@ function generatePDF(ticketId, authUser) {
     var body = doc.getBody();
     
     // แทนที่ข้อความตัวแปรทั้งหมด
-    body.replaceText("{{ticketId}}", ticket.ticket);
-    body.replaceText("{{deptId}}", ticket.ticket.split(' ')[0] || "-");
+    // ✅ {{ticketId}} = Column A ของชีต Repair_Master
+    body.replaceText("{{ticketId}}", ticket.engTicketId || "-");
+    
+    // ✅ {{deptId}} = Column B ของชีต Repair_Master
+    body.replaceText("{{deptId}}", ticket.deptTicketId || "-");
+    
+    // ตัวแปรเพิ่มเติมที่รองรับ
+    body.replaceText("{{engTicketId}}", ticket.engTicketId || "-");
+    body.replaceText("{{deptTicketId}}", ticket.deptTicketId || "-");
+    body.replaceText("{{reqDept}}", ticket.deptTicketId ? (ticket.deptTicketId.split(' ')[0] || "-") : "-");
+    
     body.replaceText("{{reqDate}}", ticket.date);
     body.replaceText("{{reqName}}", ticket.reqName);
     body.replaceText("{{reqPosition}}", ticket.reqPosition);
-    body.replaceText("{{reqDept}}", ticket.ticket.split(' ')[0] || "-");
     body.replaceText("{{target}}", ticket.target);
     body.replaceText("{{problem}}", ticket.problem);
     
