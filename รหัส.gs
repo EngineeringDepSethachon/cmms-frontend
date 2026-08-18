@@ -192,23 +192,48 @@ function doPost(e) {
         var isExternalHost = baseUrl.indexOf('github.io') > -1 || baseUrl.indexOf('vercel.app') > -1 || baseUrl.indexOf('netlify.app') > -1 || baseUrl.indexOf('http') === 0 && baseUrl.indexOf('script.google.com') === -1;
 
         var userMessage = event.message.text.trim();
-        if (userMessage === "ขอ UID" || userMessage === "ขอ uid") {
+        var userMsgLower = userMessage.toLowerCase();
+
+        if (userMessage === "ขอ UID" || userMsgLower === "uid" || userMsgLower === "ขอ uid") {
           replyText(replyToken, "รหัสประจำตัว (UID) ของคุณคือ:\n\n" + userId, botToken);
         } 
-        else if (userMessage === "แจ้งซ่อม") {
+        else if (userMessage === "แจ้งซ่อม" || userMessage === "ซ่อม" || userMessage === "แจ้งงานซ่อม" || userMessage === "ฟอร์มแจ้งซ่อม" || userMessage === "แจ้งงาน" || userMessage === "แจ้งซ่อมบำรุง" || userMsgLower === "repair" || userMsgLower === "fix" || userMessage.indexOf("แจ้งซ่อม") !== -1) {
           var targetUrl = isExternalHost 
             ? baseUrl + "/Index.html?uid=" + userId + "&openExternalBrowser=1"
             : baseUrl + "?uid=" + userId + "&page=index&openExternalBrowser=1";
             
           var flex = {
             "type": "bubble",
-            "header": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "🛠️ ระบบแจ้งซ่อม", "weight": "bold", "color": "#ffffff", "size": "xl" }], "backgroundColor": "#0056b3" },
-            "body": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "Engineering Maintenance", "weight": "bold", "size": "md" }, { "type": "text", "text": "กดปุ่มด้านล่างเพื่อเปิดแบบฟอร์มใน Browser หลักครับ", "wrap": true, "size": "sm", "margin": "md" }] },
-            "footer": { "type": "box", "layout": "vertical", "contents": [{ "type": "button", "action": { "type": "uri", "label": "📝 เปิดแบบฟอร์มแจ้งซ่อม", "uri": targetUrl }, "style": "primary", "color": "#00b900" }] }
+            "header": { 
+              "type": "box", 
+              "layout": "vertical", 
+              "contents": [
+                { "type": "text", "text": "🛠️ แบบฟอร์มแจ้งซ่อม", "weight": "bold", "color": "#ffffff", "size": "xl" }
+              ], 
+              "backgroundColor": "#191A23" 
+            },
+            "body": { 
+              "type": "box", 
+              "layout": "vertical", 
+              "contents": [
+                { "type": "text", "text": "Engineering Maintenance System", "weight": "bold", "size": "md", "color": "#191A23" }, 
+                { "type": "text", "text": "กดปุ่มด้านล่าง หรือคลิกลิงก์เพื่อเปิดแบบฟอร์มแจ้งซ่อมครับ", "wrap": true, "size": "sm", "margin": "md", "color": "#555555" },
+                { "type": "separator", "margin": "lg" },
+                { "type": "text", "text": "🔗 ลิงก์ตรง (GitHub Pages):", "size": "xs", "color": "#888888", "margin": "md", "weight": "bold" },
+                { "type": "text", "text": targetUrl, "size": "xxs", "color": "#0d6efd", "wrap": true, "action": { "type": "uri", "uri": targetUrl } }
+              ] 
+            },
+            "footer": { 
+              "type": "box", 
+              "layout": "vertical", 
+              "contents": [
+                { "type": "button", "action": { "type": "uri", "label": "📝 เปิดแบบฟอร์มแจ้งซ่อม", "uri": targetUrl }, "style": "primary", "color": "#B9FF66" }
+              ] 
+            }
           };
-          replyFlexMessage(replyToken, "ฟอร์มแจ้งซ่อม", flex, botToken);
+          replyFlexMessage(replyToken, "แบบฟอร์มแจ้งซ่อม: " + targetUrl, flex, botToken);
         }
-        else if (userMessage === "รายการงาน") {
+        else if (userMessage === "รายการงาน" || userMessage === "ติดตามงาน" || userMessage === "ติดตามสถานะ" || userMsgLower === "monitor" || userMsgLower === "track") {
           var targetUrl = isExternalHost 
             ? baseUrl + "/Monitor.html?openExternalBrowser=1"
             : baseUrl + "?page=monitor&openExternalBrowser=1";
@@ -216,25 +241,68 @@ function doPost(e) {
           var flex = {
             "type": "bubble",
             "header": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "📊 กระดานติดตามงาน", "weight": "bold", "color": "#ffffff", "size": "xl" }], "backgroundColor": "#191A23" },
-            "body": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "Tracking Board", "weight": "bold", "size": "md" }, { "type": "text", "text": "กดปุ่มด้านล่างเพื่อดูสถานะงานซ่อมทั้งหมดแบบ Real-time ครับ", "wrap": true, "size": "sm", "margin": "md" }] },
+            "body": { 
+              "type": "box", 
+              "layout": "vertical", 
+              "contents": [
+                { "type": "text", "text": "Tracking Board (CMMS)", "weight": "bold", "size": "md" }, 
+                { "type": "text", "text": "กดปุ่มด้านล่างเพื่อดูสถานะงานซ่อมทั้งหมดแบบ Real-time ครับ", "wrap": true, "size": "sm", "margin": "md" },
+                { "type": "separator", "margin": "lg" },
+                { "type": "text", "text": "🔗 ลิงก์ตรง:", "size": "xs", "color": "#888888", "margin": "md", "weight": "bold" },
+                { "type": "text", "text": targetUrl, "size": "xxs", "color": "#0d6efd", "wrap": true, "action": { "type": "uri", "uri": targetUrl } }
+              ] 
+            },
             "footer": { "type": "box", "layout": "vertical", "contents": [{ "type": "button", "action": { "type": "uri", "label": "🔍 เปิดหน้าติดตามงาน", "uri": targetUrl }, "style": "primary", "color": "#191A23" }] }
           };
-          replyFlexMessage(replyToken, "กระดานติดตามงาน", flex, botToken);
+          replyFlexMessage(replyToken, "กระดานติดตามงาน: " + targetUrl, flex, botToken);
         }
-        else if (userMessage === "home") {
+        else if (userMessage === "home" || userMessage === "หน้าหลัก" || userMessage === "เข้าสู่ระบบ" || userMsgLower === "login") {
           var targetUrl = isExternalHost 
             ? baseUrl + "/Login.html?openExternalBrowser=1"
             : baseUrl + "?page=login&openExternalBrowser=1";
             
           var flex = {
             "type": "bubble",
-            "header": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "เข้าสู่ระบบ", "weight": "bold", "color": "#ffffff", "size": "xl" }], "backgroundColor": "#191A23" },
-            "body": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "Home login", "weight": "bold", "size": "md" }, { "type": "text", "text": "กดปุ่มด้านล่างเพื่อเข้าสู่ระบบ บำรุงรักษ์ ครับ", "wrap": true, "size": "sm", "margin": "md" }] },
-            "footer": { "type": "box", "layout": "vertical", "contents": [{ "type": "button", "action": { "type": "uri", "label": "🔍 เข้าสู่ระบบ", "uri": targetUrl }, "style": "primary", "color": "#191A23" }] }
+            "header": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "🔐 เข้าสู่ระบบ CMMS", "weight": "bold", "color": "#ffffff", "size": "xl" }], "backgroundColor": "#191A23" },
+            "body": { 
+              "type": "box", 
+              "layout": "vertical", 
+              "contents": [
+                { "type": "text", "text": "Home Portal", "weight": "bold", "size": "md" }, 
+                { "type": "text", "text": "กดปุ่มด้านล่างเพื่อเข้าสู่ระบบบำรุงรักษาครับ", "wrap": true, "size": "sm", "margin": "md" },
+                { "type": "separator", "margin": "lg" },
+                { "type": "text", "text": "🔗 ลิงก์ตรง:", "size": "xs", "color": "#888888", "margin": "md", "weight": "bold" },
+                { "type": "text", "text": targetUrl, "size": "xxs", "color": "#0d6efd", "wrap": true, "action": { "type": "uri", "uri": targetUrl } }
+              ] 
+            },
+            "footer": { "type": "box", "layout": "vertical", "contents": [{ "type": "button", "action": { "type": "uri", "label": "🚀 เข้าสู่ระบบ", "uri": targetUrl }, "style": "primary", "color": "#191A23" }] }
           };
-          replyFlexMessage(replyToken, "เข้าสู่ระบบ", flex, botToken);
+          replyFlexMessage(replyToken, "เข้าสู่ระบบ: " + targetUrl, flex, botToken);
         }
-        else if (userMessage === "งานห้องเครื่อง" || userMessage === "ช่างห้องเครื่อง") {
+        else if (userMessage === "แดชบอร์ด" || userMsgLower === "dashboard" || userMessage === "แผงควบคุม") {
+          var targetUrl = isExternalHost 
+            ? baseUrl + "/Dashboard.html?openExternalBrowser=1"
+            : baseUrl + "?page=dashboard&openExternalBrowser=1";
+            
+          var flex = {
+            "type": "bubble",
+            "header": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "🎛️ แผงควบคุมงานซ่อม (Admin)", "weight": "bold", "color": "#ffffff", "size": "xl" }], "backgroundColor": "#191A23" },
+            "body": { 
+              "type": "box", 
+              "layout": "vertical", 
+              "contents": [
+                { "type": "text", "text": "CMMS Dashboard", "weight": "bold", "size": "md" }, 
+                { "type": "text", "text": "จัดการงานซ่อมผ่านระบบ SOP 4 ขั้นตอน", "wrap": true, "size": "sm", "margin": "md" },
+                { "type": "separator", "margin": "lg" },
+                { "type": "text", "text": "🔗 ลิงก์ตรง:", "size": "xs", "color": "#888888", "margin": "md", "weight": "bold" },
+                { "type": "text", "text": targetUrl, "size": "xxs", "color": "#0d6efd", "wrap": true, "action": { "type": "uri", "uri": targetUrl } }
+              ] 
+            },
+            "footer": { "type": "box", "layout": "vertical", "contents": [{ "type": "button", "action": { "type": "uri", "label": "⚙️ เปิด Dashboard", "uri": targetUrl }, "style": "primary", "color": "#FFD166" }] }
+          };
+          replyFlexMessage(replyToken, "แดชบอร์ด: " + targetUrl, flex, botToken);
+        }
+        else if (userMessage === "งานห้องเครื่อง" || userMessage === "ช่างห้องเครื่อง" || userMsgLower === "engine" || userMsgLower === "engineroom") {
           var targetUrl = isExternalHost 
             ? baseUrl + "/EngineRoom.html?uid=" + userId + "&openExternalBrowser=1"
             : baseUrl + "?uid=" + userId + "&page=engine_room&openExternalBrowser=1";
@@ -245,9 +313,9 @@ function doPost(e) {
             "body": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "Engine Room Operations", "weight": "bold", "size": "md" }, { "type": "text", "text": "รายการงานซ่อมที่อยู่ระหว่างดำเนินการสำหรับช่างห้องเครื่อง", "wrap": true, "size": "sm", "margin": "md" }] },
             "footer": { "type": "box", "layout": "vertical", "contents": [{ "type": "button", "action": { "type": "uri", "label": "🛠️ เปิดดูงานห้องเครื่อง", "uri": targetUrl }, "style": "primary", "color": "#B9FF66" }] }
           };
-          replyFlexMessage(replyToken, "งานช่างห้องเครื่อง", flex, botToken);
+          replyFlexMessage(replyToken, "งานช่างห้องเครื่อง: " + targetUrl, flex, botToken);
         }
-        else if (userMessage === "งานซ่อมบำรุง" || userMessage === "ช่างซ่อมบำรุง") {
+        else if (userMessage === "งานซ่อมบำรุง" || userMessage === "ช่างซ่อมบำรุง" || userMsgLower === "maint" || userMsgLower === "maintenance") {
           var targetUrl = isExternalHost 
             ? baseUrl + "/MaintenanceTech.html?uid=" + userId + "&openExternalBrowser=1"
             : baseUrl + "?uid=" + userId + "&page=maintenance&openExternalBrowser=1";
@@ -258,7 +326,7 @@ function doPost(e) {
             "body": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "Maintenance Operations", "weight": "bold", "size": "md" }, { "type": "text", "text": "รายการงานซ่อมที่อยู่ระหว่างดำเนินการสำหรับช่างซ่อมบำรุง", "wrap": true, "size": "sm", "margin": "md" }] },
             "footer": { "type": "box", "layout": "vertical", "contents": [{ "type": "button", "action": { "type": "uri", "label": "🔧 เปิดดูงานซ่อมบำรุง", "uri": targetUrl }, "style": "primary", "color": "#FF9900" }] }
           };
-          replyFlexMessage(replyToken, "งานช่างซ่อมบำรุง", flex, botToken);
+          replyFlexMessage(replyToken, "งานช่างซ่อมบำรุง: " + targetUrl, flex, botToken);
         }
       }
     }
