@@ -218,6 +218,52 @@
             outline: none;
         }
 
+        /* Filter Pills */
+        .filter-pill {
+            border: 2px solid var(--neo-dark);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            background-color: var(--neo-white);
+            color: var(--neo-dark);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 2px 2px 0px var(--neo-dark);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .filter-pill:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--neo-dark);
+            background-color: #F8F9FA;
+        }
+
+        .filter-pill.active {
+            background-color: var(--neo-dark);
+            color: var(--neo-white);
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px var(--neo-dark);
+        }
+
+        .filter-pill.active .badge-count {
+            background-color: var(--neo-green) !important;
+            color: var(--neo-dark) !important;
+        }
+
+        .filter-pill .badge-count {
+            font-size: 0.75rem;
+            padding: 1px 6px;
+            border-radius: 10px;
+            background-color: #E9ECEF;
+            color: var(--neo-dark);
+            font-weight: 800;
+        }
+
         /* Table Card Container */
         .table-card {
             border: var(--border-width) solid var(--neo-dark);
@@ -493,7 +539,7 @@
 
         <!-- Filter & Search Toolbar -->
         <div class="filter-panel">
-            <div class="row g-2 align-items-center">
+            <div class="row g-2 align-items-center mb-2">
                 <!-- Search Input -->
                 <div class="col-12 col-md-5 col-lg-6">
                     <div class="input-group">
@@ -512,12 +558,20 @@
 
                 <!-- Status Filter Dropdown -->
                 <div class="col-7 col-md-4 col-lg-4">
-                    <select id="statusFilter" class="form-select form-select-neo w-100" onchange="applyFilter()">
-                        <option value="all">📁 แสดงทุกสถานะ</option>
-                        <option value="pending">⏳ รอดำเนินการ (Pending)</option>
-                        <option value="processing">⚙️ กำลังดำเนินงาน (In Progress)</option>
-                        <option value="completed">✅ เสร็จสิ้นสมบูรณ์ (Completed)</option>
-                        <option value="rejected">❌ ตีกลับ / ยกเลิก (Rejected)</option>
+                    <select id="statusFilter" class="form-select form-select-neo w-100" onchange="onSelectFilterChange(this.value)">
+                        <option value="all">📁 แสดงทุกสถานะ (All Status)</option>
+                        <optgroup label="⚡ ฟิลเตอร์เฉพาะขั้นตอน (Specific SOP Stages)">
+                            <option value="waiting_approval">📝 รออนุมัติการซ่อม (Waiting Approval)</option>
+                            <option value="in_progress">🔧 อยู่ระหว่างการดำเนินการ (In Progress)</option>
+                            <option value="waiting_handover">🤝 รอรับมอบงาน (Waiting Handover)</option>
+                            <option value="waiting_qc">🔍 รอการทวนสอบ (Waiting QC)</option>
+                        </optgroup>
+                        <optgroup label="📊 กลุ่มสถานะหลัก (Main Categories)">
+                            <option value="pending">⏳ รอดำเนินการ (Pending)</option>
+                            <option value="processing">⚙️ กำลังดำเนินงานทั้งหมด (In Progress & Approval)</option>
+                            <option value="completed">✅ เสร็จสิ้นสมบูรณ์ (Completed)</option>
+                            <option value="rejected">❌ ตีกลับ / ยกเลิก (Rejected)</option>
+                        </optgroup>
                     </select>
                 </div>
 
@@ -527,6 +581,32 @@
                         แสดง <span id="filteredCount" class="text-primary">0</span> รายการ
                     </span>
                 </div>
+            </div>
+
+            <!-- Quick Filter Pills -->
+            <div class="d-flex flex-wrap align-items-center gap-1 gap-md-2 pt-2 border-top border-1 border-secondary border-opacity-25">
+                <span class="small fw-bold text-muted me-1 d-none d-sm-inline"><i class="bi bi-funnel-fill"></i> กรองด่วน:</span>
+                <button type="button" class="filter-pill active" id="pill-all" onclick="setQuickFilter('all')">
+                    📁 ทั้งหมด
+                </button>
+                <button type="button" class="filter-pill" id="pill-waiting_approval" onclick="setQuickFilter('waiting_approval')">
+                    📝 รออนุมัติการซ่อม <span class="badge-count" id="count-pill-approval">0</span>
+                </button>
+                <button type="button" class="filter-pill" id="pill-in_progress" onclick="setQuickFilter('in_progress')">
+                    🔧 อยู่ระหว่างดำเนินการ <span class="badge-count" id="count-pill-inprogress">0</span>
+                </button>
+                <button type="button" class="filter-pill" id="pill-waiting_handover" onclick="setQuickFilter('waiting_handover')">
+                    🤝 รอรับมอบงาน <span class="badge-count" id="count-pill-handover">0</span>
+                </button>
+                <button type="button" class="filter-pill" id="pill-waiting_qc" onclick="setQuickFilter('waiting_qc')">
+                    🔍 รอทวนสอบ QC <span class="badge-count" id="count-pill-qc">0</span>
+                </button>
+                <button type="button" class="filter-pill" id="pill-pending" onclick="setQuickFilter('pending')">
+                    ⏳ รอดำเนินการ <span class="badge-count" id="count-pill-pending">0</span>
+                </button>
+                <button type="button" class="filter-pill" id="pill-completed" onclick="setQuickFilter('completed')">
+                    ✅ เสร็จสมบูรณ์ <span class="badge-count" id="count-pill-completed">0</span>
+                </button>
             </div>
         </div>
 
@@ -683,17 +763,61 @@
             return "processing";
         }
 
-        // ตั้งค่า Quick Filter จาก Stat Cards
+        // ฟังก์ชันตรวจสอบสถานะเฉพาะขั้นตอน
+        function isWaitingApproval(status) {
+            const s = (status || '').toString().trim();
+            return s.includes('รออนุมัติ') || (s.includes('อนุมัติ') && !s.includes('ไม่อนุมัติ') && !s.includes('เสร็จ') && !s.includes('สมบูรณ์'));
+        }
+
+        function isInProgress(status) {
+            const s = (status || '').toString().trim();
+            const sLower = s.toLowerCase();
+            return (s.includes('ระหว่าง') || s.includes('กำลังดำเนินการ') || sLower.includes('in progress'))
+                && !s.includes('รับมอบ') && !s.includes('ทวนสอบ') && !s.includes('สมบูรณ์') && !s.includes('รออนุมัติ');
+        }
+
+        function isWaitingHandover(status) {
+            const s = (status || '').toString().trim();
+            return s.includes('รับมอบ');
+        }
+
+        function isWaitingQC(status) {
+            const s = (status || '').toString().trim();
+            return s.includes('ทวนสอบ') || s.includes('QC') || s.includes('qc');
+        }
+
+        // ตั้งค่า Quick Filter จาก Stat Cards และ Pills
         function setQuickFilter(type) {
             activeQuickFilter = type;
             const selectEl = document.getElementById('statusFilter');
             if (selectEl) selectEl.value = type;
 
+            updateFilterActiveUI(type);
+            applyFilter();
+        }
+
+        // เปลี่ยนตัวกรองจาก Dropdown
+        function onSelectFilterChange(val) {
+            activeQuickFilter = val;
+            updateFilterActiveUI(val);
+            applyFilter();
+        }
+
+        function updateFilterActiveUI(type) {
+            // อัปเดต Pill active
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            const activePill = document.getElementById(`pill-${type}`);
+            if (activePill) activePill.classList.add('active');
+
+            // อัปเดต Stat Card active
             document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
             const activeCard = document.getElementById(`card-${type}`);
-            if (activeCard) activeCard.classList.add('active-filter');
-
-            applyFilter();
+            if (activeCard) {
+                activeCard.classList.add('active-filter');
+            } else if (type === 'waiting_approval' || type === 'in_progress' || type === 'waiting_handover' || type === 'waiting_qc') {
+                const procCard = document.getElementById('card-processing');
+                if (procCard) procCard.classList.add('active-filter');
+            }
         }
 
         function clearSearch() {
@@ -729,25 +853,46 @@
                 allTickets = data.allTickets;
             }
 
-            // คำนวณตัวเลขสถิติจากชุดข้อมูลที่โหลดมาเพื่อให้ตัวเลขบนการ์ดและรายการในตารางตรงกัน 100%
+            // คำนวณตัวเลขสถิติจากชุดข้อมูลที่โหลดมาเพื่อให้ตัวเลขบนการ์ดและ Pills ตรงกัน 100%
             let countTotal = allTickets.length;
             let countPending = 0;
             let countProcessing = 0;
             let countCompleted = 0;
             let countRejected = 0;
 
+            let countApproval = 0;
+            let countInProgress = 0;
+            let countHandover = 0;
+            let countQC = 0;
+
             allTickets.forEach(t => {
-                const cat = t.statusCategory || classifyStatus(t.status);
+                const s = t.status || '';
+                const cat = t.statusCategory || classifyStatus(s);
+
                 if (cat === 'pending') countPending++;
                 else if (cat === 'processing') countProcessing++;
                 else if (cat === 'completed') countCompleted++;
                 else if (cat === 'rejected') countRejected++;
+
+                if (isWaitingApproval(s)) countApproval++;
+                else if (isInProgress(s)) countInProgress++;
+                else if (isWaitingHandover(s)) countHandover++;
+                else if (isWaitingQC(s)) countQC++;
             });
 
+            // อัปเดตตัวเลขบน Stat Cards
             if (document.getElementById('total-jobs')) document.getElementById('total-jobs').innerText = countTotal;
             if (document.getElementById('pending-jobs')) document.getElementById('pending-jobs').innerText = countPending;
             if (document.getElementById('processing-jobs')) document.getElementById('processing-jobs').innerText = countProcessing;
             if (document.getElementById('completed-jobs')) document.getElementById('completed-jobs').innerText = countCompleted;
+
+            // อัปเดตตัวเลขบน Filter Pills
+            if (document.getElementById('count-pill-approval')) document.getElementById('count-pill-approval').innerText = countApproval;
+            if (document.getElementById('count-pill-inprogress')) document.getElementById('count-pill-inprogress').innerText = countInProgress;
+            if (document.getElementById('count-pill-handover')) document.getElementById('count-pill-handover').innerText = countHandover;
+            if (document.getElementById('count-pill-qc')) document.getElementById('count-pill-qc').innerText = countQC;
+            if (document.getElementById('count-pill-pending')) document.getElementById('count-pill-pending').innerText = countPending;
+            if (document.getElementById('count-pill-completed')) document.getElementById('count-pill-completed').innerText = countCompleted;
 
             const filterValue = document.getElementById('statusFilter') ? document.getElementById('statusFilter').value : 'all';
             const searchQuery = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').toLowerCase().trim();
@@ -757,7 +902,33 @@
             // ตัวกรองตามสถานะ
             if (filterValue !== 'all') {
                 ticketsToShow = ticketsToShow.filter(t => {
-                    const cat = t.statusCategory || classifyStatus(t.status);
+                    const s = (t.status || '').toString().trim();
+                    const cat = t.statusCategory || classifyStatus(s);
+
+                    if (filterValue === 'waiting_approval') {
+                        return isWaitingApproval(s);
+                    }
+                    if (filterValue === 'in_progress') {
+                        return isInProgress(s);
+                    }
+                    if (filterValue === 'waiting_handover') {
+                        return isWaitingHandover(s);
+                    }
+                    if (filterValue === 'waiting_qc') {
+                        return isWaitingQC(s);
+                    }
+                    if (filterValue === 'pending') {
+                        return cat === 'pending';
+                    }
+                    if (filterValue === 'processing') {
+                        return cat === 'processing';
+                    }
+                    if (filterValue === 'completed') {
+                        return cat === 'completed';
+                    }
+                    if (filterValue === 'rejected') {
+                        return cat === 'rejected';
+                    }
                     return cat === filterValue;
                 });
             }
