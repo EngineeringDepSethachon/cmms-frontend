@@ -556,23 +556,64 @@
                     </div>
                 </div>
 
-                <!-- Status Filter Dropdown -->
+                <!-- Multi-Select Status Filter Dropdown -->
                 <div class="col-7 col-md-4 col-lg-4">
-                    <select id="statusFilter" class="form-select form-select-neo w-100" onchange="onSelectFilterChange(this.value)">
-                        <option value="all">📁 แสดงทุกสถานะ (All Status)</option>
-                        <optgroup label="⚡ ฟิลเตอร์เฉพาะขั้นตอน (Specific SOP Stages)">
-                            <option value="waiting_approval">📝 รออนุมัติการซ่อม (Waiting Approval)</option>
-                            <option value="in_progress">🔧 อยู่ระหว่างการดำเนินการ (In Progress)</option>
-                            <option value="waiting_handover">🤝 รอรับมอบงาน (Waiting Handover)</option>
-                            <option value="waiting_qc">🔍 รอการทวนสอบ (Waiting QC)</option>
-                        </optgroup>
-                        <optgroup label="📊 กลุ่มสถานะหลัก (Main Categories)">
-                            <option value="pending">⏳ รอดำเนินการ (Pending)</option>
-                            <option value="processing">⚙️ กำลังดำเนินงานทั้งหมด (In Progress & Approval)</option>
-                            <option value="completed">✅ เสร็จสิ้นสมบูรณ์ (Completed)</option>
-                            <option value="rejected">❌ ตีกลับ / ยกเลิก (Rejected)</option>
-                        </optgroup>
-                    </select>
+                    <div class="dropdown w-100">
+                        <button class="btn form-select form-select-neo w-100 text-start d-flex justify-content-between align-items-center" 
+                                type="button" id="dropdownMultiFilter" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                            <span id="dropdownFilterLabel" class="text-truncate fw-bold">
+                                <i class="bi bi-funnel me-1"></i> ทุกสถานะ (ทั้งหมด)
+                            </span>
+                            <i class="bi bi-chevron-down ms-1 small"></i>
+                        </button>
+                        <div class="dropdown-menu p-3 shadow-lg border border-2 border-dark" aria-labelledby="dropdownMultiFilter" style="min-width: 290px; max-height: 420px; overflow-y: auto; border-radius: 12px; box-shadow: 4px 4px 0px var(--neo-dark) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-dark border-opacity-25">
+                                <span class="fw-bold small text-dark"><i class="bi bi-check2-square me-1"></i>เลือกหลายสถานะได้</span>
+                                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none fw-bold text-danger" onclick="resetMultiFilter()">ล้างตัวกรอง</button>
+                            </div>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="chk-all" value="all" checked onchange="onCheckboxFilterChange('all', this.checked)">
+                                <label class="form-check-label fw-bold text-dark" for="chk-all">📁 แสดงทุกสถานะ (All)</label>
+                            </div>
+
+                            <div class="dropdown-divider border-dark border-opacity-25"></div>
+                            <div class="small fw-bold text-muted mb-1"><i class="bi bi-lightning-charge-fill text-warning"></i> ฟิลเตอร์เฉพาะขั้นตอน:</div>
+                            
+                            <div class="form-check mb-2 ps-4">
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="chk-waiting_approval" value="waiting_approval" onchange="onCheckboxFilterChange('waiting_approval', this.checked)">
+                                <label class="form-check-label fw-semibold text-dark" for="chk-waiting_approval">📝 รออนุมัติการซ่อม</label>
+                            </div>
+                            <div class="form-check mb-2 ps-4">
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="chk-in_progress" value="in_progress" onchange="onCheckboxFilterChange('in_progress', this.checked)">
+                                <label class="form-check-label fw-semibold text-dark" for="chk-in_progress">🔧 อยู่ระหว่างดำเนินการ</label>
+                            </div>
+                            <div class="form-check mb-2 ps-4">
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="chk-waiting_handover" value="waiting_handover" onchange="onCheckboxFilterChange('waiting_handover', this.checked)">
+                                <label class="form-check-label fw-semibold text-dark" for="chk-waiting_handover">🤝 รอรับมอบงาน</label>
+                            </div>
+                            <div class="form-check mb-2 ps-4">
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="chk-waiting_qc" value="waiting_qc" onchange="onCheckboxFilterChange('waiting_qc', this.checked)">
+                                <label class="form-check-label fw-semibold text-dark" for="chk-waiting_qc">🔍 รอการทวนสอบ (QC)</label>
+                            </div>
+
+                            <div class="dropdown-divider border-dark border-opacity-25"></div>
+                            <div class="small fw-bold text-muted mb-1"><i class="bi bi-collection-fill text-primary"></i> กลุ่มสถานะหลัก:</div>
+                            
+                            <div class="form-check mb-2 ps-4">
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="chk-pending" value="pending" onchange="onCheckboxFilterChange('pending', this.checked)">
+                                <label class="form-check-label fw-semibold text-dark" for="chk-pending">⏳ รอดำเนินการ (Pending)</label>
+                            </div>
+                            <div class="form-check mb-2 ps-4">
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="chk-completed" value="completed" onchange="onCheckboxFilterChange('completed', this.checked)">
+                                <label class="form-check-label fw-semibold text-dark" for="chk-completed">✅ เสร็จสิ้นสมบูรณ์ (Completed)</label>
+                            </div>
+                            <div class="form-check mb-2 ps-4">
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="chk-rejected" value="rejected" onchange="onCheckboxFilterChange('rejected', this.checked)">
+                                <label class="form-check-label fw-semibold text-dark" for="chk-rejected">❌ ตีกลับ / ยกเลิก (Rejected)</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Count Badge -->
@@ -583,28 +624,30 @@
                 </div>
             </div>
 
-            <!-- Quick Filter Pills -->
+            <!-- Quick Filter Multi-Select Pills -->
             <div class="d-flex flex-wrap align-items-center gap-1 gap-md-2 pt-2 border-top border-1 border-secondary border-opacity-25">
-                <span class="small fw-bold text-muted me-1 d-none d-sm-inline"><i class="bi bi-funnel-fill"></i> กรองด่วน:</span>
-                <button type="button" class="filter-pill active" id="pill-all" onclick="setQuickFilter('all')">
+                <span class="small fw-bold text-muted me-1 d-none d-sm-inline" title="สามารถกดเลือกหลายปุ่มพร้อมกันได้">
+                    <i class="bi bi-funnel-fill"></i> กรองด่วน (เลือกได้หลายข้อ):
+                </span>
+                <button type="button" class="filter-pill active" id="pill-all" onclick="toggleMultiFilter('all')">
                     📁 ทั้งหมด
                 </button>
-                <button type="button" class="filter-pill" id="pill-waiting_approval" onclick="setQuickFilter('waiting_approval')">
+                <button type="button" class="filter-pill" id="pill-waiting_approval" onclick="toggleMultiFilter('waiting_approval')">
                     📝 รออนุมัติการซ่อม <span class="badge-count" id="count-pill-approval">0</span>
                 </button>
-                <button type="button" class="filter-pill" id="pill-in_progress" onclick="setQuickFilter('in_progress')">
+                <button type="button" class="filter-pill" id="pill-in_progress" onclick="toggleMultiFilter('in_progress')">
                     🔧 อยู่ระหว่างดำเนินการ <span class="badge-count" id="count-pill-inprogress">0</span>
                 </button>
-                <button type="button" class="filter-pill" id="pill-waiting_handover" onclick="setQuickFilter('waiting_handover')">
+                <button type="button" class="filter-pill" id="pill-waiting_handover" onclick="toggleMultiFilter('waiting_handover')">
                     🤝 รอรับมอบงาน <span class="badge-count" id="count-pill-handover">0</span>
                 </button>
-                <button type="button" class="filter-pill" id="pill-waiting_qc" onclick="setQuickFilter('waiting_qc')">
+                <button type="button" class="filter-pill" id="pill-waiting_qc" onclick="toggleMultiFilter('waiting_qc')">
                     🔍 รอทวนสอบ QC <span class="badge-count" id="count-pill-qc">0</span>
                 </button>
-                <button type="button" class="filter-pill" id="pill-pending" onclick="setQuickFilter('pending')">
+                <button type="button" class="filter-pill" id="pill-pending" onclick="toggleMultiFilter('pending')">
                     ⏳ รอดำเนินการ <span class="badge-count" id="count-pill-pending">0</span>
                 </button>
-                <button type="button" class="filter-pill" id="pill-completed" onclick="setQuickFilter('completed')">
+                <button type="button" class="filter-pill" id="pill-completed" onclick="toggleMultiFilter('completed')">
                     ✅ เสร็จสมบูรณ์ <span class="badge-count" id="count-pill-completed">0</span>
                 </button>
             </div>
@@ -699,7 +742,7 @@
         }
 
         let allTickets = [];
-        let activeQuickFilter = 'all';
+        let selectedFilters = new Set(['all']); // รองรับการเลือกหลายสถานะพร้อมกัน
 
         // 3. โหลดข้อมูลจาก Backend API
         function loadData() {
@@ -786,37 +829,135 @@
             return s.includes('ทวนสอบ') || s.includes('QC') || s.includes('qc');
         }
 
-        // ตั้งค่า Quick Filter จาก Stat Cards และ Pills
+        // สลับตัวกรองแบบ Multi-Select จาก Pills หรือ Stat Cards
+        function toggleMultiFilter(filterKey) {
+            if (filterKey === 'all') {
+                selectedFilters = new Set(['all']);
+            } else {
+                selectedFilters.delete('all');
+                if (selectedFilters.has(filterKey)) {
+                    selectedFilters.delete(filterKey);
+                } else {
+                    selectedFilters.add(filterKey);
+                }
+                if (selectedFilters.size === 0) {
+                    selectedFilters.add('all');
+                }
+            }
+            updateMultiFilterUI();
+            applyFilter();
+        }
+
+        // คลิกเลือกจาก Checkbox ใน Dropdown
+        function onCheckboxFilterChange(filterKey, isChecked) {
+            if (filterKey === 'all') {
+                selectedFilters = new Set(['all']);
+            } else {
+                selectedFilters.delete('all');
+                if (isChecked) {
+                    selectedFilters.add(filterKey);
+                } else {
+                    selectedFilters.delete(filterKey);
+                }
+                if (selectedFilters.size === 0) {
+                    selectedFilters.add('all');
+                }
+            }
+            updateMultiFilterUI();
+            applyFilter();
+        }
+
+        // ล้างตัวกรองทั้งหมด
+        function resetMultiFilter() {
+            selectedFilters = new Set(['all']);
+            updateMultiFilterUI();
+            applyFilter();
+        }
+
+        // สำหรับคลิก Stat Cards ด้านบน
         function setQuickFilter(type) {
-            activeQuickFilter = type;
-            const selectEl = document.getElementById('statusFilter');
-            if (selectEl) selectEl.value = type;
-
-            updateFilterActiveUI(type);
+            if (type === 'all') {
+                selectedFilters = new Set(['all']);
+            } else {
+                // ถ้ากดการ์ด ให้เปิดฟิลเตอร์หมวดนั้น
+                if (selectedFilters.has('all')) selectedFilters.clear();
+                if (selectedFilters.has(type)) {
+                    selectedFilters.delete(type);
+                } else {
+                    selectedFilters.add(type);
+                }
+                if (selectedFilters.size === 0) selectedFilters.add('all');
+            }
+            updateMultiFilterUI();
             applyFilter();
         }
 
-        // เปลี่ยนตัวกรองจาก Dropdown
-        function onSelectFilterChange(val) {
-            activeQuickFilter = val;
-            updateFilterActiveUI(val);
-            applyFilter();
-        }
+        function updateMultiFilterUI() {
+            const isAll = selectedFilters.has('all') || selectedFilters.size === 0;
 
-        function updateFilterActiveUI(type) {
-            // อัปเดต Pill active
+            // 1. อัปเดต Filter Pills
             document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-            const activePill = document.getElementById(`pill-${type}`);
-            if (activePill) activePill.classList.add('active');
+            if (isAll) {
+                const pillAll = document.getElementById('pill-all');
+                if (pillAll) pillAll.classList.add('active');
+            } else {
+                selectedFilters.forEach(f => {
+                    const pill = document.getElementById(`pill-${f}`);
+                    if (pill) pill.classList.add('active');
+                });
+            }
 
-            // อัปเดต Stat Card active
+            // 2. อัปเดต Checkboxes ใน Dropdown
+            document.querySelectorAll('.filter-checkbox').forEach(cb => {
+                const val = cb.value;
+                if (isAll) {
+                    cb.checked = (val === 'all');
+                } else {
+                    cb.checked = selectedFilters.has(val);
+                }
+            });
+
+            // 3. อัปเดตป้ายข้อความบนปุ่ม Dropdown
+            const labelEl = document.getElementById('dropdownFilterLabel');
+            if (labelEl) {
+                if (isAll) {
+                    labelEl.innerHTML = '<i class="bi bi-funnel me-1"></i> ทุกสถานะ (ทั้งหมด)';
+                } else {
+                    const names = [];
+                    if (selectedFilters.has('waiting_approval')) names.push('รออนุมัติ');
+                    if (selectedFilters.has('in_progress')) names.push('กำลังซ่อม');
+                    if (selectedFilters.has('waiting_handover')) names.push('รอรับมอบ');
+                    if (selectedFilters.has('waiting_qc')) names.push('รอ QC');
+                    if (selectedFilters.has('pending')) names.push('รอดำเนินการ');
+                    if (selectedFilters.has('completed')) names.push('เสร็จสิ้น');
+                    if (selectedFilters.has('rejected')) names.push('ตีกลับ');
+
+                    if (names.length === 1) {
+                        labelEl.innerHTML = `<i class="bi bi-funnel-fill text-primary me-1"></i> ${names[0]}`;
+                    } else {
+                        labelEl.innerHTML = `<i class="bi bi-funnel-fill text-primary me-1"></i> เลือก (${names.length}): ${names.slice(0, 2).join(', ')}${names.length > 2 ? '...' : ''}`;
+                    }
+                }
+            }
+
+            // 4. อัปเดต Stat Cards ไฮไลต์
             document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
-            const activeCard = document.getElementById(`card-${type}`);
-            if (activeCard) {
-                activeCard.classList.add('active-filter');
-            } else if (type === 'waiting_approval' || type === 'in_progress' || type === 'waiting_handover' || type === 'waiting_qc') {
-                const procCard = document.getElementById('card-processing');
-                if (procCard) procCard.classList.add('active-filter');
+            if (isAll) {
+                const cardAll = document.getElementById('card-all');
+                if (cardAll) cardAll.classList.add('active-filter');
+            } else {
+                if (selectedFilters.has('pending')) {
+                    const c = document.getElementById('card-pending');
+                    if (c) c.classList.add('active-filter');
+                }
+                if (selectedFilters.has('processing') || selectedFilters.has('waiting_approval') || selectedFilters.has('in_progress') || selectedFilters.has('waiting_handover') || selectedFilters.has('waiting_qc')) {
+                    const c = document.getElementById('card-processing');
+                    if (c) c.classList.add('active-filter');
+                }
+                if (selectedFilters.has('completed')) {
+                    const c = document.getElementById('card-completed');
+                    if (c) c.classList.add('active-filter');
+                }
             }
         }
 
@@ -894,42 +1035,27 @@
             if (document.getElementById('count-pill-pending')) document.getElementById('count-pill-pending').innerText = countPending;
             if (document.getElementById('count-pill-completed')) document.getElementById('count-pill-completed').innerText = countCompleted;
 
-            const filterValue = document.getElementById('statusFilter') ? document.getElementById('statusFilter').value : 'all';
             const searchQuery = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').toLowerCase().trim();
 
             let ticketsToShow = allTickets;
 
-            // ตัวกรองตามสถานะ
-            if (filterValue !== 'all') {
+            // ตัวกรองหลายสถานะพร้อมกัน (Multi-Select Filter)
+            if (!selectedFilters.has('all') && selectedFilters.size > 0) {
                 ticketsToShow = ticketsToShow.filter(t => {
                     const s = (t.status || '').toString().trim();
                     const cat = t.statusCategory || classifyStatus(s);
 
-                    if (filterValue === 'waiting_approval') {
-                        return isWaitingApproval(s);
+                    for (let f of selectedFilters) {
+                        if (f === 'waiting_approval' && isWaitingApproval(s)) return true;
+                        if (f === 'in_progress' && isInProgress(s)) return true;
+                        if (f === 'waiting_handover' && isWaitingHandover(s)) return true;
+                        if (f === 'waiting_qc' && isWaitingQC(s)) return true;
+                        if (f === 'pending' && cat === 'pending') return true;
+                        if (f === 'processing' && cat === 'processing') return true;
+                        if (f === 'completed' && cat === 'completed') return true;
+                        if (f === 'rejected' && cat === 'rejected') return true;
                     }
-                    if (filterValue === 'in_progress') {
-                        return isInProgress(s);
-                    }
-                    if (filterValue === 'waiting_handover') {
-                        return isWaitingHandover(s);
-                    }
-                    if (filterValue === 'waiting_qc') {
-                        return isWaitingQC(s);
-                    }
-                    if (filterValue === 'pending') {
-                        return cat === 'pending';
-                    }
-                    if (filterValue === 'processing') {
-                        return cat === 'processing';
-                    }
-                    if (filterValue === 'completed') {
-                        return cat === 'completed';
-                    }
-                    if (filterValue === 'rejected') {
-                        return cat === 'rejected';
-                    }
-                    return cat === filterValue;
+                    return false;
                 });
             }
 
