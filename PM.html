@@ -234,10 +234,8 @@
         let viewModalInstance;
         let registerModalInstance;
 
-        // ตรวจสอบสิทธิ์: Level 3 (Engineer), Level 4 (QC), Level 5 (Admin), Level 7 (ช่างซ่อมบำรุง), Level 8 (ช่างห้องเครื่อง)
-        if (!userRole || (userLevel < 3 && userLevel !== 7 && userLevel !== 8)) { 
-            alert('❌ เฉพาะฝ่ายวิศวกรรม ช่างเทคนิค และฝ่ายบริหารจัดการเท่านั้น');
-            window.location.href = "Home.html";
+        if (!userRole && !currentLogin) { 
+            window.location.href = "Login.html?target=PM.html"; 
         }
 
         window.onload = function() { 

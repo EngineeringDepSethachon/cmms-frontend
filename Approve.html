@@ -138,9 +138,8 @@
         const currentName = localStorage.getItem('userName');
         const currentPos = localStorage.getItem('userPosition'); 
 
-        if (!userRole || userLevel < 5) {
-            alert('❌ เฉพาะผู้บริหาร (Level 5) เท่านั้นที่สามารถอนุมัติการซ่อมได้');
-            window.location.href = "Home.html";
+        if (!userRole && !currentLogin) {
+            window.location.href = "Login.html?target=Approve.html";
         }
 
         function updateTopNavbar() {

@@ -147,7 +147,9 @@
         const currentName = localStorage.getItem('userName');
         const currentDept = localStorage.getItem('userDept') || ""; 
 
-        if (!userRole || (userLevel !== 2 && userLevel < 5)) { window.location.href = "Login.html?target=Handover.html"; }
+        if (!userRole && !currentLogin) { 
+            window.location.href = "Login.html?target=Handover.html"; 
+        }
 
         function updateTopNavbar() {
             document.getElementById('topUserName').innerText = localStorage.getItem('userName') || 'Unknown';
@@ -181,7 +183,12 @@
             // กรองงานที่เป็นสถานะ "รอรับมอบงาน" และเป็นของแผนกตัวเอง (เว้นแต่เป็น Level 5 จะเห็นทั้งหมด)
             let pending = allTickets.filter(t => t.status === "รอรับมอบงาน");
             if (userLevel < 5 && currentDept) {
-                pending = pending.filter(t => t.ticket.startsWith(currentDept) || t.reqName === currentName); 
+                pending = pending.filter(t => {
+                    const tId = (t.ticket || '').toLowerCase();
+                    const engId = (t.engTicketId || '').toLowerCase();
+                    const d = currentDept.toLowerCase();
+                    return tId.includes(d) || engId.includes(d) || t.reqName === currentName;
+                }); 
             }
 
             const container = document.getElementById('jobList');

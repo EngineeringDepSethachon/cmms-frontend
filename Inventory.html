@@ -491,11 +491,8 @@
         const userLevel = parseInt(localStorage.getItem('userLevel') || 0);
         const userName = localStorage.getItem('userName') || 'Unknown';
         
-        // ตรวจสอบสิทธิ์: Level 1, 5 (Full Access), Level 6 (Issue Only)
-        // ตรวจสอบสิทธิ์: Level 1 (Staff), Level 5 (Admin), Level 6 (Stock Only), Level 7 (ช่างซ่อมบำรุง), Level 8 (ช่างห้องเครื่อง)
-        if (!userRole || (userLevel !== 1 && userLevel !== 5 && userLevel !== 6 && userLevel !== 7 && userLevel !== 8)) {
-            alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
-            window.location.href = "Home.html";
+        if (!userRole && !localStorage.getItem('userLogin')) {
+            window.location.href = "Login.html?target=Inventory.html";
         }
 
         let dataTable = null;

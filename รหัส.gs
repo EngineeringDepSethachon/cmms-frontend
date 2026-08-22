@@ -522,15 +522,13 @@ function updateTicketStatus_Full(ticketId, newStatus, note, expectedDate, assign
     
     // ปรับลอจิกการเช็คสิทธิ์ให้ยืดหยุ่นขึ้นตามคนส่ง
     if (newStatus === "รอการทวนสอบ (QC)") {
-      requiredLevel = 2; // Level 2 ส่งมอบงานไป QC
+      requiredLevel = 1; // ส่งมอบงานไป QC (ตามสิทธิ์ Role Config)
     } else if (newStatus.includes("รออนุมัติ") || newStatus === "รอรับมอบงาน") {
-      requiredLevel = 3; // วิศวกร (Level 3+) รับแจ้ง หรือ ปิดงานส่งไป Handover
+      requiredLevel = 1; // ปิดงานส่งไป Handover (ตามสิทธิ์ Role Config)
     } else if (newStatus.includes("ดำเนินการ") || newStatus.includes("ปฏิเสธ")) {
-      requiredLevel = 5; // Manager (Level 5 Only)
-      isManagerOnly = true;
+      requiredLevel = 1; // ตามสิทธิ์ Role Config
     } else if (newStatus.includes("สมบูรณ์")) {
-      requiredLevel = 4; // QC (Level 4+)
-      isQCLevel = true;
+      requiredLevel = 1; // QC ปิดงาน (ตามสิทธิ์ Role Config)
     }
 
     var permission = validateUserAction(authUser, requiredLevel); 

@@ -724,7 +724,7 @@
         // 1. ตรวจสอบสิทธิ์การเข้าใช้งาน
         const userRole = localStorage.getItem('userRole');
         const userLevel = parseInt(localStorage.getItem('userLevel') || 0);
-        if (!userRole || (userLevel !== 3 && userLevel < 5)) { 
+        if (!userRole && !localStorage.getItem('userLogin')) { 
             window.location.href = "Login.html?target=Dashboard.html"; 
         }
 
