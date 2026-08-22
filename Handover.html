@@ -266,6 +266,9 @@
             if (!confirm(`ยืนยันการรับมอบงานที่เลือกทั้งหมดจำนวน ${checkedBoxes.length} รายการ?`)) return;
             
             const ticketIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+            // บันทึก Log พร้อม IP และอุปกรณ์เครื่องจริง
+            logClientAction(`รับมอบงานแบบกลุ่ม (${ticketIds.length} รายการ)`, ticketIds.join(', '), "Handover.html");
             
             const btn = event.currentTarget;
             const originalText = btn.innerHTML;
@@ -287,6 +290,9 @@
         function submitHandover(id, action) {
             if(!confirm(`ยืนยันการ${action}งานรหัส ${id}?`)) return;
             const hoNote = document.getElementById(`handover-${id}`).value;
+
+            // บันทึก Log พร้อม IP และอุปกรณ์เครื่องจริง
+            logClientAction(`${action}งานซ่อม (ความเห็น: ${hoNote || '-'})`, id, "Handover.html");
 
             if (action === 'รับมอบ') {
                 const nextStatus = "รอการทวนสอบ (QC)";

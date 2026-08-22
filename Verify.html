@@ -245,6 +245,9 @@
             if (!confirm(`ยืนยันการทวนสอบผ่านให้กับใบงานที่เลือกทั้งหมดจำนวน ${checkedBoxes.length} รายการ?`)) return;
             
             const ticketIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+            // บันทึก Log พร้อม IP และอุปกรณ์เครื่องจริง
+            logClientAction(`QC ทวนสอบผ่านแบบกลุ่ม (${ticketIds.length} รายการ)`, ticketIds.join(', '), "Verify.html");
             
             const btn = event.currentTarget;
             const originalText = btn.innerHTML;
@@ -266,6 +269,9 @@
         function submitVerify(id, action) {
             if(!confirm(`ยืนยันการ${action}งาน ${id}?`)) return;
             const qcNoteStr = document.getElementById(`qc-${id}`).value;
+
+            // บันทึก Log พร้อม IP และอุปกรณ์เครื่องจริง
+            logClientAction(`QC ทวนสอบ: ${action} (ความเห็น: ${qcNoteStr || '-'})`, id, "Verify.html");
 
             if (action === 'ผ่าน') {
                 const nextStatus = "ซ่อมเสร็จสมบูรณ์ (Completed)";

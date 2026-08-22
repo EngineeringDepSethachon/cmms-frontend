@@ -294,7 +294,12 @@
                 return;
             }
 
-            const sendData = (fileBase64) => {
+            const sendData = async (fileBase64) => {
+                let netInfo = { ip: "-", device: "-" };
+                try {
+                    netInfo = await getRealClientNetworkInfo();
+                } catch (e) {}
+
                 const formData = {
                     reqName: document.getElementById('reqName').value,
                     reqPosition: document.getElementById('reqPosition').value,
@@ -303,7 +308,9 @@
                     targetId: this.targetId.value,
                     problem: this.problem.value,
                     file: fileBase64 && selectedFile ? { base64: fileBase64, mimeType: selectedFile.type, fileName: selectedFile.name } : null,
-                    authUser: document.getElementById('userUid').value || document.getElementById('reqName').value 
+                    authUser: document.getElementById('userUid').value || document.getElementById('reqName').value,
+                    clientIp: netInfo.ip,
+                    clientDevice: netInfo.device
                 };
 
                 const successHandler = function(response) {

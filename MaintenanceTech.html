@@ -420,8 +420,10 @@
             msgDiv.innerHTML = '';
 
             var reader = new FileReader();
-            reader.onload = function() {
+            reader.onload = async function() {
                 var base64Data = reader.result.split(',')[1];
+                let netInfo = { ip: "-", device: "-" };
+                try { netInfo = await getRealClientNetworkInfo(); } catch(e){}
 
                 var payload = {
                     ticketId: ticketId,
@@ -431,8 +433,10 @@
                         mimeType: file.type,
                         fileName: file.name
                     },
-                    techName: "ช่างซ่อมบำรุง",
-                    authUser: "MAINTENANCE_TECH"
+                    techName: localStorage.getItem('userName') || "ช่างซ่อมบำรุง",
+                    authUser: localStorage.getItem('userLogin') || "MAINTENANCE_TECH",
+                    clientIp: netInfo.ip,
+                    clientDevice: netInfo.device
                 };
 
                 google.script.run

@@ -129,3 +129,178 @@ async function callApi(action, ...args) {
         }
     };
 })();
+
+// ==========================================
+// Client IP & Device Network Detection Module
+// ==========================================
+let _cachedNetworkInfo = null;
+
+async function getRealClientNetworkInfo() {
+    if (_cachedNetworkInfo && (Date.now() - _cachedNetworkInfo.timestamp < 10 * 60 * 1000)) {
+        return _cachedNetworkInfo;
+    }
+
+    try {
+        const stored = sessionStorage.getItem('cmms_client_network_info');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && (Date.now() - parsed.timestamp < 10 * 60 * 1000)) {
+                _cachedNetworkInfo = parsed;
+                return _cachedNetworkInfo;
+            }
+        }
+    } catch (e) {}
+
+    let publicIp = "-";
+    let isp = "";
+    let city = "";
+    let localIp = "";
+
+    // 1. ดึง Local IP ภายในวง LAN ผ่าน WebRTC
+    try {
+        localIp = await new Promise((resolve) => {
+            const RTCPeer = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+            if (!RTCPeer) return resolve("");
+            const rtc = new RTCPeer({ iceServers: [] });
+            rtc.createDataChannel('');
+            rtc.createOffer().then(offer => rtc.setLocalDescription(offer)).catch(() => resolve(""));
+            let timeout = setTimeout(() => { try { rtc.close(); } catch(e){} resolve(""); }, 1200);
+            rtc.onicecandidate = (ice) => {
+                if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+                const match = ice.candidate.candidate.match(/([0-9]{1,3}(\.[0-9]{1,3}){3})/);
+                if (match && match[1] && (match[1].startsWith('192.168.') || match[1].startsWith('10.') || match[1].startsWith('172.'))) {
+                    clearTimeout(timeout);
+                    try { rtc.close(); } catch(e){}
+                    resolve(match[1]);
+                }
+            };
+        });
+    } catch (e) {
+        localIp = "";
+    }
+
+    // 2. ดึง Public IP พร้อม Multi-Provider Fallback 4 ชั้น
+    const fetchWithTimeout = (url, timeout = 2500) => {
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('timeout')), timeout);
+            fetch(url)
+                .then(r => { clearTimeout(timer); resolve(r); })
+                .catch(err => { clearTimeout(timer); reject(err); });
+        });
+    };
+
+    // Provider 1: ipify (IPv4)
+    try {
+        const res = await fetchWithTimeout('https://api.ipify.org?format=json', 2000);
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.ip) publicIp = data.ip;
+        }
+    } catch (e) {}
+
+    // Provider 2: ipify (IPv6/IPv4)
+    if (publicIp === "-" || !publicIp) {
+        try {
+            const res = await fetchWithTimeout('https://api64.ipify.org?format=json', 2000);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.ip) publicIp = data.ip;
+            }
+        } catch (e) {}
+    }
+
+    // Provider 3: Cloudflare Trace
+    if (publicIp === "-" || !publicIp) {
+        try {
+            const res = await fetchWithTimeout('https://cloudflare.com/cdn-cgi/trace', 2000);
+            if (res.ok) {
+                const text = await res.text();
+                const match = text.match(/ip=([^\n]+)/);
+                if (match && match[1]) publicIp = match[1].trim();
+            }
+        } catch (e) {}
+    }
+
+    // Provider 4: ipapi.co (ได้ทั้ง IP, ISP, City)
+    if (publicIp === "-" || !publicIp) {
+        try {
+            const res = await fetchWithTimeout('https://ipapi.co/json/', 2500);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.ip) {
+                    publicIp = data.ip;
+                    if (data.org) isp = data.org;
+                    if (data.city) city = data.city;
+                }
+            }
+        } catch (e) {}
+    }
+
+    // 3. ตรวจสอบข้อมูลอุปกรณ์ (Device & OS)
+    const ua = navigator.userAgent || "";
+    let os = "Unknown OS";
+    if (ua.indexOf("Win") !== -1) os = "Windows";
+    else if (ua.indexOf("iPhone") !== -1 || ua.indexOf("iPad") !== -1) os = "iOS";
+    else if (ua.indexOf("Android") !== -1) os = "Android";
+    else if (ua.indexOf("Mac") !== -1) os = "macOS";
+    else if (ua.indexOf("Linux") !== -1) os = "Linux";
+
+    let browser = "Browser";
+    if (ua.indexOf("Line") !== -1) browser = "LINE In-App";
+    else if (ua.indexOf("Edg") !== -1) browser = "Edge";
+    else if (ua.indexOf("Chrome") !== -1) browser = "Chrome";
+    else if (ua.indexOf("Safari") !== -1) browser = "Safari";
+    else if (ua.indexOf("Firefox") !== -1) browser = "Firefox";
+
+    const screenRes = (window.screen ? `${window.screen.width}x${window.screen.height}` : "");
+    const deviceString = `${os} (${browser}) ${screenRes}`.trim();
+
+    // รวม IP สรุป
+    let fullIpString = publicIp;
+    if (localIp) {
+        fullIpString += ` (LAN: ${localIp})`;
+    }
+    if (city || isp) {
+        fullIpString += ` [${[city, isp].filter(Boolean).join(', ')}]`;
+    }
+
+    _cachedNetworkInfo = {
+        ip: fullIpString,
+        rawPublicIp: publicIp,
+        localIp: localIp,
+        device: deviceString,
+        userAgent: ua,
+        timestamp: Date.now()
+    };
+
+    try {
+        sessionStorage.setItem('cmms_client_network_info', JSON.stringify(_cachedNetworkInfo));
+    } catch (e) {}
+
+    return _cachedNetworkInfo;
+}
+
+// ฟังก์ชันสำหรับบันทึก Log อัตโนมัติพร้อม IP และ Device
+async function logClientAction(action, targetTicket = "-", page = "") {
+    try {
+        const net = await getRealClientNetworkInfo();
+        const userName = localStorage.getItem('userName') || "ไม่ระบุชื่อ";
+        const userDept = localStorage.getItem('userDept') || "-";
+        const userPos = localStorage.getItem('userPosition') || "-";
+        const userUid = localStorage.getItem('userUid') || localStorage.getItem('userLogin') || "-";
+
+        google.script.run.logAction({
+            name: userName,
+            dept: userDept,
+            pos: userPos,
+            action: action,
+            targetTicket: targetTicket,
+            page: page || (window.location.pathname.split('/').pop() || "Web"),
+            uid: userUid,
+            ip: net.ip,
+            device: net.device
+        });
+    } catch (e) {
+        console.warn("Could not log client action:", e);
+    }
+}

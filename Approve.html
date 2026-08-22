@@ -225,10 +225,13 @@
             });
         }
 
-        function submitApproval(ticketId, action) {
+        async function submitApproval(ticketId, action) {
             if(!confirm(`ยืนยันการ${action} งานรหัส ${ticketId}?`)) return;
 
             const appNote = document.getElementById(`note-${ticketId}`).value;
+
+            // บันทึก Log พร้อม IP และอุปกรณ์เครื่องจริง
+            logClientAction(`ผู้บริหาร${action}งานซ่อม (ความเห็น: ${appNote || '-'})`, ticketId, "Approve.html");
 
             if (action === 'อนุมัติ') {
                 const nextStatus = 'อยู่ระหว่างการดำเนินการ';

@@ -730,13 +730,15 @@ function completeTechnicianWork(data) {
     }
 
     logAction({
-      name: data.userName || "ช่างซ่อมบำรุง",
+      name: data.userName || data.techName || "ช่างซ่อมบำรุง",
       dept: data.department || "MAINTENANCE",
       pos: "Technician",
       action: "Work Completed & Submitted (รอรับมอบงาน)",
       targetTicket: data.ticketId,
       page: "Technician_Page",
-      uid: data.authUser || "-"
+      uid: data.authUser || "-",
+      ip: data.clientIp || "-",
+      device: data.clientDevice || "-"
     });
 
     return { 
@@ -868,6 +870,19 @@ function processForm(data) {
     // rowData[32] = ""                             // AG: Submit_Handover_Timestamp (ว่างไว้ก่อน บันทึกเมื่อปิดงาน)
 
     sheet.appendRow(rowData);
+
+    logAction({
+      name: data.reqName || "ผู้แจ้งซ่อม",
+      dept: data.department || "-",
+      pos: data.reqPosition || "-",
+      action: "เปิดใบแจ้งซ่อมใหม่ (" + (data.category || "-") + ": " + (data.targetId || "-") + ")",
+      targetTicket: deptId + " (" + engId + ")",
+      page: "Index.html (แจ้งซ่อม)",
+      uid: data.authUser || "-",
+      ip: data.clientIp || "-",
+      device: data.clientDevice || "-"
+    });
+
     return "✅ แจ้งซ่อมสำเร็จ! รหัส: " + deptId;
   } catch (e) { return "❌ Error: " + e.toString(); }
 }
@@ -1184,7 +1199,14 @@ function verifyUserLogin(u, p) {
 
 function logAction(d) {
   try { 
-    var s = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Login_Log'); 
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var s = ss.getSheetByName('Login_Log'); 
+    if (!s) {
+      s = ss.insertSheet('Login_Log');
+      s.appendRow(['วัน-เวลา', 'ชื่อผู้ใช้งาน', 'แผนก', 'ตำแหน่ง', 'การกระทำ (Action)', 'รหัสงานอ้างอิง', 'หน้าที่ทำรายการ', 'UID / Username', 'IP Address (เครื่องจริง)', 'อุปกรณ์ / เบราว์เซอร์']);
+      s.getRange(1, 1, 1, 10).setBackground('#191A23').setFontColor('#FFFFFF').setFontWeight('bold');
+      s.setFrozenRows(1);
+    }
     // [1]เวลา, [2]ชื่อ, [3]แผนก, [4]ตำแหน่ง, [5]การกระทำ, [6]รหัสงานอ้างอิง, [7]หน้าที่ทำรายการ, [8]UID, [9]IP, [10]Device
     s.appendRow([
       Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss"), 
@@ -1198,7 +1220,9 @@ function logAction(d) {
       d.ip || "-", 
       d.device || "-"
     ]); 
-  } catch (e) {}
+  } catch (e) {
+    Logger.log("Error in logAction: " + e.toString());
+  }
 }
 
 function replyText(t, m, token) { UrlFetchApp.fetch('https://api.line.me/v2/bot/message/reply', { 'method': 'post', 'headers': { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || TOKENS[1]) }, 'payload': JSON.stringify({ 'replyToken': t, 'messages': [{ 'type': 'text', 'text': m }] }) }); }
