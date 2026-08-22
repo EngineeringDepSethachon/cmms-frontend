@@ -499,6 +499,9 @@
                 .withSuccessHandler(function(res) {
                     if (res && res.success && res.permissions) {
                         currentPermissions = res.permissions;
+                        try {
+                            localStorage.setItem('cmms_role_permissions', JSON.stringify(res.permissions));
+                        } catch (e) {}
                     }
                     renderUI();
                 })
@@ -780,6 +783,10 @@
                     if (btnMobile) { btnMobile.disabled = false; btnMobile.innerHTML = originalMobileText; }
 
                     if (res && res.success) {
+                        try {
+                            localStorage.setItem('cmms_role_permissions', JSON.stringify(currentPermissions));
+                        } catch (e) {}
+
                         Swal.fire({
                             icon: 'success',
                             title: 'บันทึกสำเร็จ!',

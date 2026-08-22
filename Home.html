@@ -306,6 +306,38 @@
             return count;
         }
 
+        const moduleMap = {
+            'index': 'menu-index',
+            'monitor': 'menu-monitor',
+            'inventory': 'menu-inventory',
+            'pm': 'menu-pm',
+            'maintenance': 'menu-maintenance',
+            'engine_room': 'menu-engine',
+            'dashboard': 'menu-dashboard',
+            'handover': 'menu-handover',
+            'verify': 'menu-verify',
+            'approve': 'menu-approve',
+            'signatures': 'menu-signatures',
+            'role_config': 'menu-role-config'
+        };
+
+        function renderRolePermissions(permissionsObj, sourceLabel) {
+            if (!permissionsObj || !permissionsObj[userLevel]) return false;
+            hideAllMenus();
+            const p = permissionsObj[userLevel];
+
+            Object.keys(moduleMap).forEach(key => {
+                if (p[key] === true || p[key] === "TRUE" || p[key] === 1) {
+                    showMenu(moduleMap[key]);
+                }
+            });
+
+            if (document.getElementById('dbgMenus')) {
+                document.getElementById('dbgMenus').innerText = countVisibleMenus() + " (" + sourceLabel + ")";
+            }
+            return true;
+        }
+
         function applyDefaultLevelPermissions() {
             hideAllMenus();
             
@@ -337,7 +369,7 @@
                 showMenu('menu-verify');
                 showMenu('menu-approve');
                 showMenu('menu-signatures');
-                showMenu('menu-role-config'); // Level 5 เห็นหน้าตั้งค่าสิทธิ์
+                showMenu('menu-role-config');
             }
             if (userLevel === 6 || userRole === 'stock') {
                 showMenu('menu-inventory');
@@ -366,44 +398,42 @@
             document.getElementById('dbgLevel').innerText = userLevel + ' (type: ' + typeof userLevel + ')';
             document.getElementById('dbgRole').innerText = userRole;
 
-            // แสดง Default ก่อนชั่วคราว
-            applyDefaultLevelPermissions();
+            // 1. ตรวจสอบว่ามี Cache สิทธิ์ล่าสุดใน LocalStorage หรือไม่ (ถ้ามี เรนเดอร์ทันที 0ms ป้องกันหน้ากระพริบ)
+            var cachedPermissions = null;
+            try {
+                cachedPermissions = JSON.parse(localStorage.getItem('cmms_role_permissions') || 'null');
+            } catch (e) {
+                cachedPermissions = null;
+            }
 
-            // ดึงสิทธิ์ Dynamic จาก Backend (Sheet: Role_Permissions)
+            var hasRenderedFromCache = false;
+            if (cachedPermissions && cachedPermissions[userLevel]) {
+                hasRenderedFromCache = renderRolePermissions(cachedPermissions, 'Instant Cache');
+            }
+            
+            if (!hasRenderedFromCache) {
+                applyDefaultLevelPermissions();
+            }
+
+            // 2. ซิงค์สิทธิ์ล่าสุดจาก Backend (Sheet: Role_Permissions) ในพื้นหลัง
             google.script.run
                 .withSuccessHandler(function(res) {
-                    if (res && res.success && res.permissions && res.permissions[userLevel]) {
-                        hideAllMenus();
-                        const p = res.permissions[userLevel];
-                        
-                        const moduleMap = {
-                            'index': 'menu-index',
-                            'monitor': 'menu-monitor',
-                            'inventory': 'menu-inventory',
-                            'pm': 'menu-pm',
-                            'maintenance': 'menu-maintenance',
-                            'engine_room': 'menu-engine',
-                            'dashboard': 'menu-dashboard',
-                            'handover': 'menu-handover',
-                            'verify': 'menu-verify',
-                            'approve': 'menu-approve',
-                            'signatures': 'menu-signatures',
-                            'role_config': 'menu-role-config'
-                        };
+                    if (res && res.success && res.permissions) {
+                        try {
+                            localStorage.setItem('cmms_role_permissions', JSON.stringify(res.permissions));
+                        } catch (e) {}
 
-                        Object.keys(moduleMap).forEach(key => {
-                            if (p[key] === true || p[key] === "TRUE" || p[key] === 1) {
-                                showMenu(moduleMap[key]);
-                            }
-                        });
-
-                        document.getElementById('dbgMenus').innerText = countVisibleMenus() + " (Dynamic Sheet)";
-                    } else {
+                        if (res.permissions[userLevel]) {
+                            renderRolePermissions(res.permissions, 'Dynamic Sheet');
+                        }
+                    } else if (!hasRenderedFromCache) {
                         document.getElementById('dbgMenus').innerText = countVisibleMenus() + " (Default Fallback)";
                     }
                 })
                 .withFailureHandler(function(err) {
-                    document.getElementById('dbgMenus').innerText = countVisibleMenus() + " (Fallback Error)";
+                    if (!hasRenderedFromCache) {
+                        document.getElementById('dbgMenus').innerText = countVisibleMenus() + " (Fallback Error)";
+                    }
                 })
                 .getRolePermissions();
         };
