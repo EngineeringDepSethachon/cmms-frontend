@@ -16,7 +16,7 @@ var TEMPLATE_DOC_ID = '1tMPP-LcVzsOTn4cwRqj8kMNDMxKCry9u0i0jM_RKucE'; // ใส�
 // ✅ กำหนด Web App URL ตัวจริง (แก้ที่นี่ที่เดียวเมื่อ Deploy ใหม่)
 // สาเหตุที่ต้องกำหนดตรงนี้: ScriptApp.getService().getUrl() เมื่อรันผ่าน Trigger
 // จะคืนค่า Deployment ID ของ Trigger ไม่ใช่ Web App ที่ Publish ไว้
-var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzS1tnU_Z2-ojpW3MI2GQA3eqrJKg3i6K9ngsLv1TFNRxLhhbkX8XFeCpW_9kb1q1U/exec';
+var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyE0vT-sO9RChY_TtS6Wpg8bHXz1tlZUqWyc9cRuT-MiwrZ7Oc0CfVqc23roKQpLKUE/exec';
 
 // ✅ กำหนด URL ของ Frontend (เช่น GitHub Pages, Vercel, Netlify)
 // เพื่อให้ปุ่มใน LINE Bot Flex Message ลิงก์ไปยัง Frontend ภายนอกได้ถูกต้อง
