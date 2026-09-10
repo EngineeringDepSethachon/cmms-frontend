@@ -1,0 +1,7 @@
+# Ignore everything by default
+**/**
+
+# Include only AppScript manifest, scripts, and HTML files
+!appsscript.json
+!*.gs
+!*.html

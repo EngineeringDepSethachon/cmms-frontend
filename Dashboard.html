@@ -592,10 +592,6 @@
                                 <input class="form-check-input filter-checkbox" type="checkbox" id="chk-waiting_handover" value="waiting_handover" onchange="onCheckboxFilterChange('waiting_handover', this.checked)">
                                 <label class="form-check-label fw-semibold text-dark" for="chk-waiting_handover">🤝 รอรับมอบงาน</label>
                             </div>
-                            <div class="form-check mb-2 ps-4">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="chk-waiting_qc" value="waiting_qc" onchange="onCheckboxFilterChange('waiting_qc', this.checked)">
-                                <label class="form-check-label fw-semibold text-dark" for="chk-waiting_qc">🔍 รอการทวนสอบ (QC)</label>
-                            </div>
 
                             <div class="dropdown-divider border-dark border-opacity-25"></div>
                             <div class="small fw-bold text-muted mb-1"><i class="bi bi-collection-fill text-primary"></i> กลุ่มสถานะหลัก:</div>
@@ -640,9 +636,6 @@
                 </button>
                 <button type="button" class="filter-pill" id="pill-waiting_handover" onclick="toggleMultiFilter('waiting_handover')">
                     🤝 รอรับมอบงาน <span class="badge-count" id="count-pill-handover">0</span>
-                </button>
-                <button type="button" class="filter-pill" id="pill-waiting_qc" onclick="toggleMultiFilter('waiting_qc')">
-                    🔍 รอทวนสอบ QC <span class="badge-count" id="count-pill-qc">0</span>
                 </button>
                 <button type="button" class="filter-pill" id="pill-pending" onclick="toggleMultiFilter('pending')">
                     ⏳ รอดำเนินการ <span class="badge-count" id="count-pill-pending">0</span>
@@ -927,7 +920,6 @@
                     if (selectedFilters.has('waiting_approval')) names.push('รออนุมัติ');
                     if (selectedFilters.has('in_progress')) names.push('กำลังซ่อม');
                     if (selectedFilters.has('waiting_handover')) names.push('รอรับมอบ');
-                    if (selectedFilters.has('waiting_qc')) names.push('รอ QC');
                     if (selectedFilters.has('pending')) names.push('รอดำเนินการ');
                     if (selectedFilters.has('completed')) names.push('เสร็จสิ้น');
                     if (selectedFilters.has('rejected')) names.push('ตีกลับ');
@@ -950,7 +942,7 @@
                     const c = document.getElementById('card-pending');
                     if (c) c.classList.add('active-filter');
                 }
-                if (selectedFilters.has('processing') || selectedFilters.has('waiting_approval') || selectedFilters.has('in_progress') || selectedFilters.has('waiting_handover') || selectedFilters.has('waiting_qc')) {
+                if (selectedFilters.has('processing') || selectedFilters.has('waiting_approval') || selectedFilters.has('in_progress') || selectedFilters.has('waiting_handover')) {
                     const c = document.getElementById('card-processing');
                     if (c) c.classList.add('active-filter');
                 }

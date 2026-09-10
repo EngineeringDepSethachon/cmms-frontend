@@ -483,7 +483,7 @@ function getDashboardData() {
           imageUrl: imageUrl, 
           completionImageUrl: completionImageUrl,
           note: data[i][13] ? data[i][13].toString() : "", 
-          expectedDate: data[i][14] ? data[i][14].toString() : "", 
+          expectedDate: data[i][14] ? formatDate(data[i][14]) : "-", 
           assignDept: data[i][15] ? data[i][15].toString() : "", 
           receivedDate: formatDate(data[i][16]),
           repairMethod: data[i][17] ? data[i][17].toString() : "", 
@@ -548,9 +548,9 @@ function updateTicketStatus_Full(ticketId, newStatus, note, expectedDate, assign
         sheet.getRange(i + 1, 3).setValue(newStatus);         
         sheet.getRange(i + 1, 8).setValue(progress);          
         if (note) {
-          if (newStatus === "รอการทวนสอบ (QC)") {
+          if (handoverName || newStatus === "รอการทวนสอบ (QC)") {
             sheet.getRange(i + 1, 35).setValue(note); // Column AI (35): Handover_Note
-          } else if (newStatus === "ซ่อมเสร็จสมบูรณ์ (Completed)") {
+          } else if (newStatus === "ซ่อมเสร็จสมบูรณ์ (Completed)" || newStatus === "เสร็จสมบูรณ์") {
             sheet.getRange(i + 1, 36).setValue(note); // Column AJ (36): QC_Note
           } else {
             sheet.getRange(i + 1, 14).setValue(note); // Column N (14): General/Technician Note
@@ -1231,13 +1231,39 @@ function getUserJobs(uid) { return getDashboardData().allTickets.filter(t => t.s
 function resubmitJob(d) { return d.createNew ? (updateTicketStatus_Full(d.editTicketId, "ยกเลิก (ใบใหม่)", "เปลี่ยนใบใหม่", "", "", "", "", "", "", "", d.authUser, 0, "", "", ""), processForm(d)) : updateTicketStatus_Full(d.editTicketId, "รอดำเนินการ", "Resubmit: " + d.correctionDetails, "", "", "", "", "", "", d.correctionDetails, d.authUser, 0, "", "", ""); }
 function rawImgToThumbnail(u) { if (!u) return ""; var m = u.match(/[-\w]{25,}/); return m ? "https://drive.google.com/thumbnail?id=" + m[0] + "&sz=w500" : u; }
 function formatDate(v) {
-  if (v instanceof Date) {
+  if (!v || v === "-") return "-";
+  if (v instanceof Date || Object.prototype.toString.call(v) === '[object Date]') {
     var dd = String(v.getDate()).padStart(2, '0');
     var mm = String(v.getMonth() + 1).padStart(2, '0');
     var yyyy = v.getFullYear();
     var hh = String(v.getHours()).padStart(2, '0');
     var min = String(v.getMinutes()).padStart(2, '0');
     return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min;
+  }
+  if (typeof v === 'string') {
+    var trimmed = v.trim();
+    if (!trimmed || trimmed === "-") return "-";
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(trimmed)) {
+      return trimmed;
+    }
+    var m = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s](\d{1,2}):(\d{1,2}))?/);
+    if (m) {
+      var yyyy = m[1];
+      var mm = String(m[2]).padStart(2, '0');
+      var dd = String(m[3]).padStart(2, '0');
+      var hh = m[4] ? String(m[4]).padStart(2, '0') : '00';
+      var min = m[5] ? String(m[5]).padStart(2, '0') : '00';
+      return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min;
+    }
+    var d = new Date(trimmed);
+    if (!isNaN(d.getTime())) {
+      var dd = String(d.getDate()).padStart(2, '0');
+      var mm = String(d.getMonth() + 1).padStart(2, '0');
+      var yyyy = d.getFullYear();
+      var hh = String(d.getHours()).padStart(2, '0');
+      var min = String(d.getMinutes()).padStart(2, '0');
+      return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min;
+    }
   }
   return v || "-";
 }
@@ -1373,7 +1399,7 @@ function generatePDF(ticketId, authUser) {
           note: data[i][13] ? data[i][13].toString() : "", 
           handoverNote: data[i][34] ? data[i][34].toString() : "",
           qcNote: data[i][35] ? data[i][35].toString() : "",
-          expectedDate: data[i][14] ? data[i][14].toString() : "", 
+          expectedDate: data[i][14] ? formatDate(data[i][14]) : "-", 
           assignDept: data[i][15] ? data[i][15].toString() : "", 
           receivedDate: formatDate(data[i][16]),
           repairMethod: data[i][17] ? data[i][17].toString() : "", 
@@ -1676,8 +1702,8 @@ function bulkHandoverTickets(ticketIds, authUser, userName) {
     
     for (var i = 1; i < data.length; i++) {
       if (data[i][1] && ticketIds.indexOf(data[i][1].toString().trim()) !== -1) {
-        sheet.getRange(i + 1, 3).setValue("รอการทวนสอบ (QC)"); // Status
-        sheet.getRange(i + 1, 8).setValue(90); // Progress
+        sheet.getRange(i + 1, 3).setValue("เสร็จสมบูรณ์"); // Status
+        sheet.getRange(i + 1, 8).setValue(100); // Progress
         sheet.getRange(i + 1, 35).setValue("Supervisor Handover (รับมอบแบบกลุ่ม)"); // Column AI (35): Handover_Note
         sheet.getRange(i + 1, 27).setValue(now); // Handover_Timestamp [AA]
         sheet.getRange(i + 1, 34).setValue(userName); // Handover_Name [AH]
