@@ -230,17 +230,6 @@
                 </a>
             </div>
 
-            <!-- 9. ทวนสอบงาน -->
-            <div class="col-md-6 col-lg-4" id="menu-verify" style="display:none;">
-                <a href="Verify.html" class="app-card">
-                    <div class="card-icon"><i class="bi bi-shield-check"></i></div>
-                    <div class="card-content">
-                        <h5>ทวนสอบงาน</h5>
-                        <div class="sub-label">QC Verification</div>
-                    </div>
-                    <div class="card-arrow"><i class="bi bi-arrow-right"></i></div>
-                </a>
-            </div>
 
             <!-- 10. อนุมัติงาน -->
             <div class="col-md-6 col-lg-4" id="menu-approve" style="display:none;">
@@ -315,7 +304,6 @@
             'engine_room': 'menu-engine',
             'dashboard': 'menu-dashboard',
             'handover': 'menu-handover',
-            'verify': 'menu-verify',
             'approve': 'menu-approve',
             'signatures': 'menu-signatures',
             'role_config': 'menu-role-config'
@@ -356,7 +344,6 @@
                 showMenu('menu-pm');
             }
             if (userLevel === 4 || userRole === 'qc') {
-                showMenu('menu-verify');
                 showMenu('menu-pm');
             }
             if (userLevel === 5 || userRole === 'admin') {
@@ -366,7 +353,6 @@
                 showMenu('menu-engine');
                 showMenu('menu-dashboard');
                 showMenu('menu-handover');
-                showMenu('menu-verify');
                 showMenu('menu-approve');
                 showMenu('menu-signatures');
                 showMenu('menu-role-config');

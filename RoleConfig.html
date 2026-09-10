@@ -472,7 +472,6 @@
             { key: "engine_room", label: "งานช่างห้องเครื่อง", desc: "จัดการงานซ่อมฝ่ายห้องเครื่อง", icon: "⚡", badgeColor: "#20C997" },
             { key: "dashboard", label: "Dashboard (Admin)", desc: "แผงควบคุมและจัดการงาน SOP", icon: "📈", badgeColor: "#FFC107" },
             { key: "handover", label: "รับมอบงาน", desc: "ตรวจสอบและรับมอบงานซ่อม", icon: "🤝", badgeColor: "#6F42C1" },
-            { key: "verify", label: "ทวนสอบงาน (QC)", desc: "ตรวจสอบและประเมินคุณภาพงาน", icon: "🔍", badgeColor: "#0DCAF0" },
             { key: "approve", label: "อนุมัติงานซ่อม", desc: "พิจารณาอนุมัติแผนงานซ่อม", icon: "✅", badgeColor: "#198754" },
             { key: "signatures", label: "จัดการลายเซ็น", desc: "ตั้งค่ารูปลายเซ็นอิเล็กทรอนิกส์", icon: "✍️", badgeColor: "#6C757D" },
             { key: "role_config", label: "ตั้งค่าสิทธิ์ระบบ", desc: "กำหนดสิทธิ์การเข้าถึงโมดูล", icon: "🔐", badgeColor: "#D63384" }
@@ -480,14 +479,14 @@
 
         // ค่าเริ่มต้น
         const defaultPermissions = {
-            1: { index: true, monitor: true, inventory: true, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: false, verify: false, approve: false, signatures: false, role_config: false },
-            2: { index: true, monitor: true, inventory: false, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: true, verify: false, approve: false, signatures: false, role_config: false },
-            3: { index: true, monitor: true, inventory: false, pm: true, maintenance: false, engine_room: false, dashboard: true, handover: false, verify: false, approve: false, signatures: false, role_config: false },
-            4: { index: true, monitor: true, inventory: false, pm: true, maintenance: false, engine_room: false, dashboard: false, handover: false, verify: true, approve: false, signatures: false, role_config: false },
-            5: { index: true, monitor: true, inventory: true, pm: true, maintenance: true, engine_room: true, dashboard: true, handover: true, verify: true, approve: true, signatures: true, role_config: true },
-            6: { index: true, monitor: true, inventory: true, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: false, verify: false, approve: false, signatures: false, role_config: false },
-            7: { index: true, monitor: true, inventory: true, pm: true, maintenance: true, engine_room: false, dashboard: false, handover: false, verify: false, approve: false, signatures: false, role_config: false },
-            8: { index: true, monitor: true, inventory: true, pm: true, maintenance: false, engine_room: true, dashboard: false, handover: false, verify: false, approve: false, signatures: false, role_config: false }
+            1: { index: true, monitor: true, inventory: true, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: false, approve: false, signatures: false, role_config: false },
+            2: { index: true, monitor: true, inventory: false, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: true, approve: false, signatures: false, role_config: false },
+            3: { index: true, monitor: true, inventory: false, pm: true, maintenance: false, engine_room: false, dashboard: true, handover: false, approve: false, signatures: false, role_config: false },
+            4: { index: true, monitor: true, inventory: false, pm: true, maintenance: false, engine_room: false, dashboard: false, handover: false, approve: false, signatures: false, role_config: false },
+            5: { index: true, monitor: true, inventory: true, pm: true, maintenance: true, engine_room: true, dashboard: true, handover: true, approve: true, signatures: true, role_config: true },
+            6: { index: true, monitor: true, inventory: true, pm: false, maintenance: false, engine_room: false, dashboard: false, handover: false, approve: false, signatures: false, role_config: false },
+            7: { index: true, monitor: true, inventory: true, pm: true, maintenance: true, engine_room: false, dashboard: false, handover: false, approve: false, signatures: false, role_config: false },
+            8: { index: true, monitor: true, inventory: true, pm: true, maintenance: false, engine_room: true, dashboard: false, handover: false, approve: false, signatures: false, role_config: false }
         };
 
         let currentPermissions = JSON.parse(JSON.stringify(defaultPermissions));
