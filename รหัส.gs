@@ -780,6 +780,14 @@ function rejectAndCloneTicket(oldTicketId, cancelStatus, rejectNote, authUser, r
     
     if (oldRowIndex === -1) return { success: false, message: "ไม่พบรหัสงานเดิม" };
     
+    // ปรับชื่อสถานะและผู้สั่งการให้เป็นหัวหน้าฝ่ายวิศวกรรมเสมอ
+    if (cancelStatus && cancelStatus.includes("ผู้บริหาร")) {
+      cancelStatus = "ถูกตีกลับ (โดยหัวหน้าฝ่ายวิศวกรรม)";
+    }
+    if (!rejectorName || rejectorName === "ผู้บริหาร") {
+      rejectorName = "หัวหน้าฝ่ายวิศวกรรม";
+    }
+
     // 1. อัปเดตงานเดิมให้เป็นยกเลิก
     sheet.getRange(oldRowIndex + 1, 3).setValue(cancelStatus);
     sheet.getRange(oldRowIndex + 1, 8).setValue(0); // Progress 0
@@ -809,6 +817,9 @@ function rejectAndCloneTicket(oldTicketId, cancelStatus, rejectNote, authUser, r
     rowData[10] = oldData[10];                      // K: Req_Name
     rowData[11] = oldData[11];                      // L: Req_Position
     rowData[12] = oldData[12];                      // M: Image_ID
+    
+    // บันทึกข้อสั่งการตีกลับใน Note ของใบงานใหม่ด้วย เพื่อให้แสดงผลได้ทันที
+    rowData[13] = "งานตีกลับจาก " + oldTicketId + " (" + rejectorName + "): " + rejectNote; // N: Note
     
     rowData[20] = oldTicketId;                      // U: Ref_Ticket_ID (ชี้ไปที่งานเก่า)
     rowData[21] = "ตีกลับจาก: " + rejectorName + " เหตุผล: " + rejectNote; // V: Correction_Details
