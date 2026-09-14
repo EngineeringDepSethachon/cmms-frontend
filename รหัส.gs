@@ -492,12 +492,15 @@ function getDashboardData() {
           repairDetails: data[i][18] ? data[i][18].toString() : "", 
           approvalStatus: data[i][19] ? data[i][19].toString() : "",
           refTicketId: data[i][20] ? data[i][20].toString() : "",
+          correctionDetails: data[i][21] ? data[i][21].toString() : "", 
           cause: data[i][22] ? data[i][22].toString() : "", 
           receiver: data[i][23] ? data[i][23].toString() : "", 
           verifier: data[i][24] ? data[i][24].toString() : "",
           verifyTimestamp: formatDate(data[i][9]), // (Column J: Verify_Timestamp)
           submitHandoverTimestamp: data[i][32] ? formatDate(data[i][32]) : "", // [AG] เวลาปิดงานส่งมอบ
           handoverName: data[i][33] ? data[i][33].toString() : "", // [AH] ผู้รับมอบงาน
+          handoverNote: data[i][34] ? data[i][34].toString() : "", // [AI] หมายเหตุรับมอบ/ส่งมอบ
+          qcNote: data[i][35] ? data[i][35].toString() : "", // [AJ] หมายเหตุ QC
           approverName: data[i][27] ? data[i][27].toString() : "", 
           approverPosition: data[i][28] ? data[i][28].toString() : "", 
           approvalTimestamp: formatDate(data[i][29]), 

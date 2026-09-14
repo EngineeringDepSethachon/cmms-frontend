@@ -13,8 +13,8 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="config.js"></script>
-    <script src="api.js"></script>
+    <script src="config.js?v=20260914_02"></script>
+    <script src="api.js?v=20260914_02"></script>
 
     <style>
         :root {
@@ -961,8 +961,73 @@
             }
         }
 
-        function applyFilter() {
-            renderDashboard();
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // ฟังก์ชันดึงข้อมูลและเหตุผลการตีกลับใบงาน
+        function getRejectionDetails(t) {
+            const s = (t.status || '').toString();
+            const isRejected = s.includes('ตีกลับ') || s.includes('ยกเลิก') || s.includes('ปฏิเสธ');
+            const hasRef = Boolean(t.refTicketId && t.refTicketId !== '-' && t.refTicketId.trim() !== '');
+
+            if (!isRejected && !hasRef) return null;
+
+            let reason = '';
+            let rejector = '';
+
+            // 1. ตรวจสอบจาก Correction_Details (กรณีใบงานที่สร้างใหม่จากการตีกลับ)
+            if (t.correctionDetails && t.correctionDetails.trim() !== '' && t.correctionDetails !== '-') {
+                const match = t.correctionDetails.match(/ตีกลับจาก:\s*(.*?)\s*เหตุผล:\s*(.*)/);
+                if (match) {
+                    rejector = match[1].trim();
+                    reason = match[2].trim();
+                } else {
+                    reason = t.correctionDetails.trim();
+                }
+            }
+
+            // 2. ถ้ายังไม่มีเหตุผล ให้ดึงจาก note (ซึ่งระบบบันทึกไว้ในช่อง Note งานเดิมที่ถูกตีกลับ)
+            if (!reason && t.note && t.note.trim() !== '' && t.note !== '-') {
+                reason = t.note.trim();
+            }
+
+            // 3. ตรวจสอบเพิ่มเติมจากบันทึกของผู้บริหาร / QC / ส่งมอบ
+            if (!reason && t.approvalNote && t.approvalNote.trim() !== '' && t.approvalNote !== '-') {
+                reason = t.approvalNote.replace(/^อนุมัติ:\s*|^ไม่อนุมัติ:\s*/, '').trim();
+            }
+            if (!reason && t.qcNote && t.qcNote.trim() !== '' && t.qcNote !== '-') {
+                reason = t.qcNote.trim();
+            }
+            if (!reason && t.handoverNote && t.handoverNote.trim() !== '' && t.handoverNote !== '-') {
+                reason = t.handoverNote.trim();
+            }
+
+            if (!reason) {
+                reason = 'ไม่ได้ระบุเหตุผลการตีกลับ';
+            }
+
+            // ตัดให้กระชับสำหรับแสดงบน Badge ในแถวตาราง
+            let shortReason = reason;
+            if (shortReason.length > 35) {
+                shortReason = shortReason.substring(0, 32) + '...';
+            }
+
+            return {
+                isRejected: isRejected,       // ใบงานเดิมที่สถานะถูกตีกลับ
+                isCloned: hasRef,             // ใบงานใหม่ที่เปิดขึ้นมาแทน
+                refTicketId: t.refTicketId || '',
+                rejector: rejector,
+                reason: reason,
+                shortReason: shortReason,
+                status: s
+            };
         }
 
         // 5. แสดงผล Dashboard และตาราง
@@ -1059,11 +1124,17 @@
                     const target = (t.target || '').toLowerCase();
                     const problem = (t.problem || '').toLowerCase();
                     const dept = (t.assignDept || '').toLowerCase();
+                    const note = (t.note || '').toLowerCase();
+                    const corr = (t.correctionDetails || '').toLowerCase();
+                    const ref = (t.refTicketId || '').toLowerCase();
                     return ticketId.includes(searchQuery) || 
                            reqName.includes(searchQuery) || 
                            target.includes(searchQuery) || 
                            problem.includes(searchQuery) ||
-                           dept.includes(searchQuery);
+                           dept.includes(searchQuery) ||
+                           note.includes(searchQuery) ||
+                           corr.includes(searchQuery) ||
+                           ref.includes(searchQuery);
                 });
             }
 
@@ -1092,17 +1163,38 @@
                     else if (s.includes('ระหว่าง') || s.includes('ดำเนินการ')) statusBadgeClass = 'bg-status-working';
                     else if (s.includes('ตีกลับ') || s.includes('ยกเลิก') || s.includes('ปฏิเสธ')) statusBadgeClass = 'bg-status-cancel';
 
+                    // ตรวจสอบข้อมูลการตีกลับและเหตุผล
+                    const rej = getRejectionDetails(t);
+                    let rejBadgeHtml = '';
+                    if (rej) {
+                        if (rej.isRejected) {
+                            rejBadgeHtml = `
+                                <div class="mt-1">
+                                    <span class="badge bg-danger text-white border border-dark shadow-sm" style="font-size:0.72rem; white-space: normal; text-align: left; display: inline-block; max-width: 260px;" title="เหตุผลการตีกลับ: ${escapeHtml(rej.reason)}">
+                                        <i class="bi bi-x-octagon-fill me-1"></i>ถูกตีกลับ: ${escapeHtml(rej.shortReason)}
+                                    </span>
+                                </div>`;
+                        } else if (rej.isCloned) {
+                            rejBadgeHtml = `
+                                <div class="mt-1">
+                                    <span class="badge bg-warning text-dark border border-dark shadow-sm" style="font-size:0.72rem; white-space: normal; text-align: left; display: inline-block; max-width: 260px;" title="ข้อสั่งการ/ตีกลับจากงานเดิม: ${escapeHtml(rej.reason)}">
+                                        <i class="bi bi-arrow-repeat me-1"></i>ตีกลับจาก ${escapeHtml(rej.refTicketId)}: ${escapeHtml(rej.shortReason)}
+                                    </span>
+                                </div>`;
+                        }
+                    }
+
                     // Main Row (Adaptive: Table row on Desktop / Card on Mobile)
                     const mainRow = `
                         <tr class="expandable-row" id="row-${t.ticket}" onclick="toggleRow('${t.ticket}')">
                             <td>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <span class="fw-bold text-dark font-prompt fs-6">${t.ticket || '-'}</span>
-                                        ${t.refTicketId ? `<br><span class="badge bg-danger" style="font-size:0.65rem;">ตีกลับจาก: ${t.refTicketId}</span>` : ''}
+                                        <span class="fw-bold text-dark font-prompt fs-6">${escapeHtml(t.ticket || '-')}</span>
+                                        ${rejBadgeHtml}
                                     </div>
                                     <div class="d-lg-none">
-                                        <span class="badge-status ${statusBadgeClass}">${t.status || '-'}</span>
+                                        <span class="badge-status ${statusBadgeClass}">${escapeHtml(t.status || '-')}</span>
                                     </div>
                                 </div>
                             </td>
@@ -1110,21 +1202,21 @@
                                 <div class="d-flex align-items-center">
                                     <i class="bi bi-person-circle me-2 text-secondary d-none d-lg-inline"></i>
                                     <div>
-                                        <div class="fw-semibold">${t.reqName || '-'}</div>
-                                        <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>${t.date || '-'}</small>
+                                        <div class="fw-semibold">${escapeHtml(t.reqName || '-')}</div>
+                                        <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>${escapeHtml(t.date || '-')}</small>
                                     </div>
                                 </div>
                             </td>
                             <td>
                                 <div>
                                     <span class="d-lg-none fw-bold text-muted small">สถานที่: </span>
-                                    <span class="fw-medium text-dark">${t.target || '-'}</span>
+                                    <span class="fw-medium text-dark">${escapeHtml(t.target || '-')}</span>
                                 </div>
                             </td>
                             <td>
-                                <div class="small text-truncate" style="max-width: 250px;" title="${t.problem || '-'}">
+                                <div class="small text-truncate" style="max-width: 250px;" title="${escapeHtml(t.problem || '-')}">
                                     <span class="d-lg-none fw-bold text-muted">ปัญหา: </span>
-                                    ${t.problem || '-'}
+                                    ${escapeHtml(t.problem || '-')}
                                 </div>
                             </td>
                             <td>
@@ -1136,7 +1228,7 @@
                                 </div>
                             </td>
                             <td class="d-none d-lg-table-cell">
-                                <span class="badge-status ${statusBadgeClass} w-100">${t.status || '-'}</span>
+                                <span class="badge-status ${statusBadgeClass} w-100">${escapeHtml(t.status || '-')}</span>
                             </td>
                             <td class="text-center">
                                 <button class="btn-neo btn-sm py-1 px-2 w-100" style="font-size:0.8rem;">
@@ -1146,11 +1238,48 @@
                             </td>
                         </tr>`;
 
+                    // กล่องข้อความแจ้งเตือนสาเหตุการตีกลับใน Detail Row
+                    let rejBannerHtml = '';
+                    if (rej) {
+                        if (rej.isRejected) {
+                            rejBannerHtml = `
+                                <div class="alert alert-danger border border-2 border-danger rounded-3 p-3 mb-3 text-start" style="box-shadow: 3px 3px 0px #dc3545;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-exclamation-octagon-fill fs-4 text-danger me-2"></i>
+                                        <div>
+                                            <strong class="font-prompt fs-6 text-danger">ใบงานนี้ถูกตีกลับ / ไม่อนุมัติ (${escapeHtml(t.status)})</strong>
+                                            ${rej.rejector ? `<div class="small text-muted">ผู้สั่งตีกลับ: <b>${escapeHtml(rej.rejector)}</b></div>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-white rounded border border-2 border-danger text-dark">
+                                        <div class="small fw-bold text-danger mb-1"><i class="bi bi-chat-left-quote-fill me-1"></i>เหตุผล / คำสั่งการที่ถูกตีกลับ:</div>
+                                        <div class="fw-bold fs-6" style="white-space: pre-wrap;">${escapeHtml(rej.reason)}</div>
+                                    </div>
+                                </div>`;
+                        } else if (rej.isCloned) {
+                            rejBannerHtml = `
+                                <div class="alert alert-warning border border-2 border-dark rounded-3 p-3 mb-3 text-start" style="box-shadow: 3px 3px 0px var(--neo-dark); background-color: #fff9db;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-arrow-repeat fs-4 text-dark me-2"></i>
+                                        <div>
+                                            <strong class="font-prompt fs-6 text-dark">ใบงานสร้างใหม่แทนงานเดิมที่ถูกตีกลับ (อ้างอิงใบงานเดิม: ${escapeHtml(rej.refTicketId)})</strong>
+                                            ${rej.rejector ? `<div class="small text-muted">ผู้สั่งตีกลับ: <b>${escapeHtml(rej.rejector)}</b></div>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-white rounded border border-2 border-dark text-dark">
+                                        <div class="small fw-bold text-danger mb-1"><i class="bi bi-chat-left-quote-fill me-1"></i>ข้อสั่งการ / สิ่งที่ต้องแก้ไขจากงานเดิม:</div>
+                                        <div class="fw-bold fs-6" style="white-space: pre-wrap;">${escapeHtml(rej.reason)}</div>
+                                    </div>
+                                </div>`;
+                        }
+                    }
+
                     // Detail Row (Expandable Content with SOP management & PDF)
                     const detailRow = `
                         <tr id="detail-${t.ticket}" class="detail-row">
                             <td colspan="7">
                                 <div class="detail-container">
+                                    ${rejBannerHtml}
                                     <div class="row g-3 g-md-4">
                                         <!-- Photo Preview Section -->
                                         <div class="col-12 col-md-5 text-center">
@@ -1219,9 +1348,19 @@
         function renderSOPForm(t) {
             const isPlan = (t.status === "Pending" || t.status === "รอดำเนินการ" || t.status === "รอรับแจ้ง");
             const isWork = (t.status === "อยู่ระหว่างการดำเนินการ" || t.status === "อยู่ระหว่างดำเนินการ");
+            const rej = getRejectionDetails(t);
+
+            // แจ้งเตือนข้อสั่งการ/เหตุผลการตีกลับด้านบน SOP Form หากเป็นงานแก้งานเดิม
+            const rejCloneAlert = (rej && rej.isCloned) ? `
+                <div class="alert alert-warning border border-2 border-dark rounded-3 p-2 mb-3 text-start small" style="box-shadow: 2px 2px 0px var(--neo-dark); background-color: #fff9db;">
+                    <div class="fw-bold text-danger mb-1"><i class="bi bi-arrow-repeat me-1"></i>งานแก้ไขแทนใบงานเดิม (${escapeHtml(rej.refTicketId)}):</div>
+                    <div class="fw-bold text-dark">${escapeHtml(rej.reason)}</div>
+                    ${rej.rejector ? `<div class="text-muted mt-1" style="font-size:0.75rem;">ผู้สั่งการ: ${escapeHtml(rej.rejector)}</div>` : ''}
+                </div>` : '';
 
             if (isPlan) {
                 return `
+                    ${rejCloneAlert}
                     <div class="row g-2">
                         <div class="col-12 mb-2">
                             <label class="form-label small fw-bold">⚠️ สาเหตุที่พบ / การประเมินปัญหา</label>
@@ -1264,12 +1403,13 @@
                     </div>`;
             } else if (isWork) {
                 return `
+                    ${rejCloneAlert}
                     <div class="alert alert-info py-2 small mb-3 border border-2 border-dark rounded-3" style="box-shadow: 2px 2px 0px var(--neo-dark);">
-                        <div class="fw-bold"><i class="bi bi-info-circle-fill me-1"></i> อยู่ระหว่างดำเนินการโดย: ${t.assignDept || '-'}</div>
+                        <div class="fw-bold"><i class="bi bi-info-circle-fill me-1"></i> อยู่ระหว่างดำเนินการโดย: ${escapeHtml(t.assignDept || '-')}</div>
                         <hr class="my-1 border-dark">
-                        <div><b>⚠️ สาเหตุ:</b> ${t.cause || '-'}</div>
-                        <div><b>🛠️ วิธีแก้:</b> ${t.repairMethod || '-'} ${t.repairDetails ? `(${t.repairDetails})` : ''}</div>
-                        <div><b>📅 กำหนดเสร็จ:</b> ${t.expectedDate || '-'}</div>
+                        <div><b>⚠️ สาเหตุ:</b> ${escapeHtml(t.cause || '-')}</div>
+                        <div><b>🛠️ วิธีแก้:</b> ${escapeHtml(t.repairMethod || '-')} ${t.repairDetails ? `(${escapeHtml(t.repairDetails)})` : ''}</div>
+                        <div><b>📅 กำหนดเสร็จ:</b> ${escapeHtml(t.expectedDate || '-')}</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">📝 บันทึกผลการซ่อม / หมายเหตุ (Note)</label>
@@ -1286,27 +1426,35 @@
                     </button>`;
             } else {
                 let extraInfo = '';
+                if (rej && rej.isRejected) {
+                    extraInfo += `
+                        <div class="alert alert-danger border border-2 border-danger rounded-2 text-start p-2 my-2 small">
+                            <b class="text-danger"><i class="bi bi-x-octagon-fill me-1"></i>เหตุผลการตีกลับ:</b>
+                            <div class="text-dark mt-1 fw-bold fs-6">${escapeHtml(rej.reason)}</div>
+                            ${rej.rejector ? `<div class="small text-muted mt-1">ผู้สั่งตีกลับ: <b>${escapeHtml(rej.rejector)}</b></div>` : ''}
+                        </div>`;
+                }
                 if (t.repairMethod || t.cause || t.assignDept) {
-                    extraInfo = `
+                    extraInfo += `
                         <hr class="my-2 border-secondary">
                         <div class="row text-start small g-1">
-                            <div class="col-12 col-sm-6"><b>⚠️ สาเหตุ:</b> ${t.cause || '-'}</div>
-                            <div class="col-12 col-sm-6"><b>🛠️ วิธีแก้ไข:</b> ${t.repairMethod || '-'} ${t.repairDetails ? `(${t.repairDetails})` : ''}</div>
-                            <div class="col-12 col-sm-6"><b>👨‍✈️ ผู้รับผิดชอบ:</b> ${t.assignDept || '-'}</div>
-                            <div class="col-12 col-sm-6"><b>📅 กำหนดเสร็จ:</b> ${t.expectedDate || '-'}</div>
-                            ${t.note ? `<div class="col-12 mt-1"><b>📝 หมายเหตุ:</b> ${t.note}</div>` : ''}
+                            <div class="col-12 col-sm-6"><b>⚠️ สาเหตุ:</b> ${escapeHtml(t.cause || '-')}</div>
+                            <div class="col-12 col-sm-6"><b>🛠️ วิธีแก้ไข:</b> ${escapeHtml(t.repairMethod || '-')} ${t.repairDetails ? `(${escapeHtml(t.repairDetails)})` : ''}</div>
+                            <div class="col-12 col-sm-6"><b>👨‍✈️ ผู้รับผิดชอบ:</b> ${escapeHtml(t.assignDept || '-')}</div>
+                            <div class="col-12 col-sm-6"><b>📅 กำหนดเสร็จ:</b> ${escapeHtml(t.expectedDate || '-')}</div>
+                            ${t.note ? `<div class="col-12 mt-1"><b>📝 หมายเหตุ:</b> ${escapeHtml(t.note)}</div>` : ''}
                             ${t.submitHandoverTimestamp && t.submitHandoverTimestamp !== '-' 
-                              ? `<div class="col-12 mt-1"><b>📦 เวลาส่งมอบงาน:</b> ${t.submitHandoverTimestamp}</div>` 
+                              ? `<div class="col-12 mt-1"><b>📦 เวลาส่งมอบงาน:</b> ${escapeHtml(t.submitHandoverTimestamp)}</div>` 
                               : ''}
                             ${t.handoverName && t.handoverName !== '-' 
-                              ? `<div class="col-12"><b>🤝 ผู้รับมอบงาน:</b> ${t.handoverName}</div>` 
+                              ? `<div class="col-12"><b>🤝 ผู้รับมอบงาน:</b> ${escapeHtml(t.handoverName)}</div>` 
                               : ''}
                         </div>`;
                 }
                 return `
                     <div class="alert alert-secondary py-3 text-center border border-2 border-dark rounded-3" style="box-shadow: 2px 2px 0px var(--neo-dark);">
-                        <span class="fw-bold fs-6 text-dark">สถานะปัจจุบัน: ${t.status}</span><br>
-                        <small class="text-muted">ผู้อนุมัติ: ${t.approverName || '-'} | ผู้รับแจ้ง: ${t.receiver || '-'}</small>
+                        <span class="fw-bold fs-6 text-dark">สถานะปัจจุบัน: ${escapeHtml(t.status)}</span><br>
+                        <small class="text-muted">ผู้อนุมัติ: ${escapeHtml(t.approverName || '-')} | ผู้รับแจ้ง: ${escapeHtml(t.receiver || '-')}</small>
                         ${extraInfo}
                     </div>`;
             }
