@@ -481,7 +481,9 @@ function getDashboardData() {
           reqName: data[i][10] ? data[i][10].toString() : "", 
           reqPosition: data[i][11] ? data[i][11].toString() : "", 
           imageUrl: imageUrl, 
+          rawImageUrl: rawImageUrl,
           completionImageUrl: completionImageUrl,
+          rawCompUrl: rawCompUrl,
           note: data[i][13] ? data[i][13].toString() : "", 
           expectedDate: data[i][14] ? formatDate(data[i][14]) : "-", 
           assignDept: data[i][15] ? data[i][15].toString() : "", 
@@ -543,7 +545,7 @@ function updateTicketStatus_Full(ticketId, newStatus, note, expectedDate, assign
     var data = sheet.getDataRange().getValues();
     
     for (var i = 1; i < data.length; i++) {
-      if (data[i][1] === ticketId) {
+      if (data[i][1] === ticketId || data[i][0] === ticketId) {
         var now = Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss");
         sheet.getRange(i + 1, 3).setValue(newStatus);         
         sheet.getRange(i + 1, 8).setValue(progress);          
@@ -766,7 +768,7 @@ function rejectAndCloneTicket(oldTicketId, cancelStatus, rejectNote, authUser, r
     var oldData = null;
     
     for (var i = 1; i < data.length; i++) {
-      if (data[i][1] === oldTicketId) {
+      if (data[i][1] === oldTicketId || data[i][0] === oldTicketId) {
         oldRowIndex = i;
         oldData = data[i];
         break;
