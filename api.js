@@ -42,32 +42,48 @@ async function callApi(action, ...args) {
         throw new Error("กรุณากำหนดค่า CONFIG.GAS_API_URL ในไฟล์ config.js");
     }
 
-    try {
-        const payload = JSON.stringify({
-            action: action,
-            args: args
-        });
+    const payload = JSON.stringify({
+        action: action,
+        args: args
+    });
 
-        // ส่งแบบ text/plain เพื่อป้องกัน CORS Preflight OPTIONS (GAS ไม่รองรับ OPTIONS)
-        const response = await fetch(CONFIG.GAS_API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
-            body: payload,
-            redirect: "follow"
-        });
+    // ส่งแบบ text/plain เพื่อป้องกัน CORS Preflight OPTIONS (GAS ไม่รองรับ OPTIONS)
+    // ใช้ credentials: "omit" เพื่อป้องกันปัญหา Google Multi-account Conflict (404 Error)
+    let lastError = null;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+            const response = await fetch(CONFIG.GAS_API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: payload,
+                redirect: "follow",
+                credentials: "omit"
+            });
 
-        if (!response.ok) {
-            throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+            if (!response.ok) {
+                let extra = "";
+                if (response.status === 404) {
+                    extra = " (ไม่พบ Web App ปลายทาง หรือเกิดปัญหา Multi-Account บน Google Chrome กรุณาลองใช้หน้าต่าง Incognito หรือกดรีเฟรชใหม่)";
+                }
+                throw new Error(`HTTP Error ${response.status}: ${response.statusText || ''}${extra}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            lastError = error;
+            console.warn(`API Attempt ${attempt} failed [${action}]:`, error);
+            if (attempt < 2) {
+                // รอ 1.2 วินาทีแล้วลองใหม่อีก 1 ครั้งอัตโนมัติ
+                await new Promise(r => setTimeout(r, 1200));
+            }
         }
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error(`API Error [${action}]:`, error);
-        throw error;
     }
+
+    console.error(`API Error [${action}]:`, lastError);
+    throw lastError;
 }
 
 // สร้าง Drop-in Polyfill สำหรับ google.script.run
