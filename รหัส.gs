@@ -429,13 +429,13 @@ function classifyStatus(status) {
   if (s === "Pending" || s === "รอดำเนินการ" || s.indexOf("รอรับแจ้ง") !== -1 || sLower === "pending") {
     return "pending";
   }
-  if (s.indexOf("สมบูรณ์") !== -1 || s.indexOf("เสร็จ") !== -1 || sLower.indexOf("complete") !== -1 || sLower.indexOf("done") !== -1) {
+  if (s.indexOf("สมบูรณ์") !== -1 || s.indexOf("เสร็จ") !== -1 || s.indexOf("ทวนสอบ") !== -1 || sLower.indexOf("complete") !== -1 || sLower.indexOf("done") !== -1) {
     return "completed";
   }
   if (s.indexOf("ตีกลับ") !== -1 || s.indexOf("ยกเลิก") !== -1 || s.indexOf("ปฏิเสธ") !== -1 || sLower.indexOf("reject") !== -1 || sLower.indexOf("cancel") !== -1) {
     return "rejected";
   }
-  // ทุกสถานะที่อยู่ระหว่างขั้นตอน SOP (รออนุมัติการซ่อม, อยู่ระหว่างดำเนินการ, รอรับมอบงาน, รอการทวนสอบ QC)
+  // ทุกสถานะที่อยู่ระหว่างขั้นตอน SOP (รออนุมัติการซ่อม, อยู่ระหว่างดำเนินการ, รอรับมอบงาน)
   return "processing";
 }
 
@@ -453,6 +453,10 @@ function getDashboardData() {
       if (!data[i][0] && !data[i][1]) continue; 
       
       var status = data[i][2] ? data[i][2].toString().trim() : "";
+      // อัปเดตและแปลงสถานะทวนสอบ (QC) ตกค้างในอดีต ให้เป็นเสร็จสมบูรณ์โดยอัตโนมัติ
+      if (status.indexOf("ทวนสอบ") !== -1 || status.indexOf("QC") !== -1) {
+        status = "เสร็จสมบูรณ์";
+      }
       var category = classifyStatus(status);
       
       summary.total++;
@@ -477,7 +481,7 @@ function getDashboardData() {
           target: data[i][3] && data[i][3].toString() !== "-" ? data[i][3].toString() : (data[i][4] ? data[i][4].toString() : "-"),
           problem: data[i][5] ? data[i][5].toString() : "", 
           date: formatDate(data[i][8]), 
-          progress: Number(data[i][7]) || 0,
+          progress: (status === "เสร็จสมบูรณ์" || status.indexOf("สมบูรณ์") !== -1) ? 100 : (Number(data[i][7]) || 0),
           reqName: data[i][10] ? data[i][10].toString() : "", 
           reqPosition: data[i][11] ? data[i][11].toString() : "", 
           imageUrl: imageUrl, 

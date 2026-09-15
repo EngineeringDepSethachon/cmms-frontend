@@ -6,8 +6,8 @@
     <title>CMMS Dashboard - Monitor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="config.js"></script>
-    <script src="api.js"></script>
+    <script src="config.js?v=20260915_01"></script>
+    <script src="api.js?v=20260915_01"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -361,6 +361,15 @@
                     .withSuccessHandler(function(response) {
                         if (response && !response.error) {
                             allTicketsRaw = response.allTickets || [];
+
+                            // ปรับข้อมูลสถานะ QC / ทวนสอบตกค้างในอดีต ให้เป็นเสร็จสมบูรณ์ 100% โดยอัตโนมัติ
+                            allTicketsRaw.forEach(t => {
+                                if (t.status && (t.status.includes('ทวนสอบ') || t.status.includes('QC'))) {
+                                    t.status = "ซ่อมเสร็จสมบูรณ์ (Completed)";
+                                    t.progress = 100;
+                                    t.statusCategory = "completed";
+                                }
+                            });
                             
                             // สร้างตัวเลือกแผนกใน Dropdown
                             populateDeptFilterDropdown();
@@ -408,7 +417,7 @@
             if (s === "Pending" || s === "รอดำเนินการ" || s.includes("รอรับแจ้ง") || sLower === "pending") {
                 return "pending";
             }
-            if (s.includes("สมบูรณ์") || s.includes("เสร็จ") || sLower.includes("complete") || sLower.includes("done")) {
+            if (s.includes("สมบูรณ์") || s.includes("เสร็จ") || s.includes("ทวนสอบ") || sLower.includes("complete") || sLower.includes("done")) {
                 return "completed";
             }
             if (s.includes("ตีกลับ") || s.includes("ยกเลิก") || s.includes("ปฏิเสธ") || sLower.includes("reject") || sLower.includes("cancel")) {
@@ -708,9 +717,9 @@
             
             if (s === "Pending" || s === "รอดำเนินการ") colorClass = "bg-warning-neo";
             else if (s.includes("รอรับมอบงาน")) colorClass = "bg-primary text-white"; 
-            else if (s.includes("ระหว่าง") || s.includes("ดำเนินการ") || s.includes("ทวนสอบ")) colorClass = "bg-info-neo";
+            else if (s.includes("ระหว่าง") || s.includes("ดำเนินการ")) colorClass = "bg-info-neo";
             else if (s.includes("อนุมัติ")) colorClass = "bg-dark text-white";
-            else if (s.includes("สมบูรณ์") || s === "เสร็จสิ้น") colorClass = "bg-success-neo";
+            else if (s.includes("สมบูรณ์") || s === "เสร็จสิ้น" || s.includes("ทวนสอบ")) colorClass = "bg-success-neo";
             else if (s.includes("ยกเลิก") || s.includes("ปฏิเสธ") || s.includes("ตีกลับ")) colorClass = "bg-danger-neo";
             
             return `<span class="badge-status ${colorClass}">${s}</span>`;

@@ -13,8 +13,8 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="config.js?v=20260914_03"></script>
-    <script src="api.js?v=20260914_03"></script>
+    <script src="config.js?v=20260915_01"></script>
+    <script src="api.js?v=20260915_01"></script>
 
     <style>
         :root {
@@ -790,7 +790,7 @@
             if (s === "Pending" || s === "รอดำเนินการ" || s.includes("รอรับแจ้ง") || sLower === "pending") {
                 return "pending";
             }
-            if (s.includes("สมบูรณ์") || s.includes("เสร็จ") || sLower.includes("complete") || sLower.includes("done")) {
+            if (s.includes("สมบูรณ์") || s.includes("เสร็จ") || s.includes("ทวนสอบ") || sLower.includes("complete") || sLower.includes("done")) {
                 return "completed";
             }
             if (s.includes("ตีกลับ") || s.includes("ยกเลิก") || s.includes("ปฏิเสธ") || sLower.includes("reject") || sLower.includes("cancel")) {
@@ -809,17 +809,12 @@
             const s = (status || '').toString().trim();
             const sLower = s.toLowerCase();
             return (s.includes('ระหว่าง') || s.includes('กำลังดำเนินการ') || sLower.includes('in progress'))
-                && !s.includes('รับมอบ') && !s.includes('ทวนสอบ') && !s.includes('สมบูรณ์') && !s.includes('รออนุมัติ');
+                && !s.includes('รับมอบ') && !s.includes('สมบูรณ์') && !s.includes('รออนุมัติ');
         }
 
         function isWaitingHandover(status) {
             const s = (status || '').toString().trim();
             return s.includes('รับมอบ');
-        }
-
-        function isWaitingQC(status) {
-            const s = (status || '').toString().trim();
-            return s.includes('ทวนสอบ') || s.includes('QC') || s.includes('qc');
         }
 
         // สลับตัวกรองแบบ Multi-Select จาก Pills หรือ Stat Cards
@@ -1092,6 +1087,15 @@
                 }
 
                 allTickets = data.allTickets;
+
+                // ปรับข้อมูลสถานะ QC / ทวนสอบตกค้างในอดีต ให้เป็นเสร็จสมบูรณ์ 100% โดยอัตโนมัติ
+                allTickets.forEach(t => {
+                    if (t.status && (t.status.includes('ทวนสอบ') || t.status.includes('QC'))) {
+                        t.status = "ซ่อมเสร็จสมบูรณ์ (Completed)";
+                        t.progress = 100;
+                        t.statusCategory = "completed";
+                    }
+                });
             }
 
             // คำนวณตัวเลขสถิติจากชุดข้อมูลที่โหลดมาเพื่อให้ตัวเลขบนการ์ดและ Pills ตรงกัน 100%
@@ -1104,7 +1108,6 @@
             let countApproval = 0;
             let countInProgress = 0;
             let countHandover = 0;
-            let countQC = 0;
 
             allTickets.forEach(t => {
                 const s = t.status || '';
@@ -1118,7 +1121,6 @@
                 if (isWaitingApproval(s)) countApproval++;
                 else if (isInProgress(s)) countInProgress++;
                 else if (isWaitingHandover(s)) countHandover++;
-                else if (isWaitingQC(s)) countQC++;
             });
 
             // อัปเดตตัวเลขบน Stat Cards
@@ -1131,7 +1133,6 @@
             if (document.getElementById('count-pill-approval')) document.getElementById('count-pill-approval').innerText = countApproval;
             if (document.getElementById('count-pill-inprogress')) document.getElementById('count-pill-inprogress').innerText = countInProgress;
             if (document.getElementById('count-pill-handover')) document.getElementById('count-pill-handover').innerText = countHandover;
-            if (document.getElementById('count-pill-qc')) document.getElementById('count-pill-qc').innerText = countQC;
             if (document.getElementById('count-pill-pending')) document.getElementById('count-pill-pending').innerText = countPending;
             if (document.getElementById('count-pill-completed')) document.getElementById('count-pill-completed').innerText = countCompleted;
 
@@ -1149,7 +1150,6 @@
                         if (f === 'waiting_approval' && isWaitingApproval(s)) return true;
                         if (f === 'in_progress' && isInProgress(s)) return true;
                         if (f === 'waiting_handover' && isWaitingHandover(s)) return true;
-                        if (f === 'waiting_qc' && isWaitingQC(s)) return true;
                         if (f === 'pending' && cat === 'pending') return true;
                         if (f === 'processing' && cat === 'processing') return true;
                         if (f === 'completed' && cat === 'completed') return true;
